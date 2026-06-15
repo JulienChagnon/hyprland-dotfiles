@@ -1,0 +1,5 @@
+#!/bin/bash
+wsid=$(hyprctl activeworkspace -j | jq .id)
+hyprctl clients -j | jq -r --argjson w "$wsid" '.[] | select(.workspace.id == $w) | "address:\(.address)"' | while read -r addr; do
+    hyprctl dispatch closewindow "$addr"
+done

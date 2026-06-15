@@ -1,0 +1,56 @@
+/* Waybar theme picker — accent synced to active waybar theme via hypr-border-sync */
+* {
+    font-family: "Noto Sans Mono", "Font Awesome 6 Free", monospace;
+    font-size: 13px;
+}
+
+window {
+    background-color: rgba(28, 28, 32, 0.96);
+    border: 1px solid rgba(168, 216, 112, 0.40);
+    border-radius: 12px;
+    color: #e0e0e0;
+}
+
+#outer-box {
+    padding: 8px;
+}
+
+#input {
+    background-color: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(168, 216, 112, 0.45);
+    border-radius: 7px;
+    color: #e0e0e0;
+    padding: 6px 12px;
+    margin-bottom: 6px;
+}
+
+#input:focus {
+    border-color: rgba(168, 216, 112, 0.80);
+}
+
+#scroll {
+    margin: 0;
+}
+
+#entry {
+    padding: 4px 12px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+}
+
+#entry:hover {
+    background-color: rgba(168, 216, 112, 0.12);
+}
+
+#entry:selected {
+    background-color: rgba(168, 216, 112, 0.22);
+    border-color: rgba(168, 216, 112, 0.50);
+}
+
+#text {
+    color: #e0e0e0;
+}
+
+#text:selected {
+    color: #ffffff;
+}

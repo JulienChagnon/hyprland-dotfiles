@@ -1,0 +1,229 @@
+/* Waybar BROWN & GREEN theme — near-black earth → forest green, brown accents */
+
+* {
+    font-family: "Noto Sans Mono", monospace;
+    font-size: 13px;
+    border: none;
+    border-radius: 0;
+    min-height: 0;
+    padding: 0;
+    margin: 0;
+}
+
+window#waybar {
+    background-color: rgba(10, 12, 8, 0.97);
+    border-bottom: 2px solid #182010;
+    color: #d0dcc0;
+}
+
+.modules-left,
+.modules-right,
+.modules-center {
+    margin: 0 4px;
+}
+
+/* ─── Workspace buttons — near-black forest → medium olive (shade only) ─── */
+#workspaces button {
+    padding: 1px 10px;
+    background: transparent;
+    background-image: none;
+    background-clip: padding-box;
+    border-radius: 6px;
+    border-bottom: 2px solid transparent;
+    margin: 3px 1px;
+    font-weight: bold;
+    box-shadow: none;
+    outline: none;
+    transition: background 0.22s ease-in-out,
+                border-color 0.22s ease-in-out;
+}
+
+/* Hide empty desktops (and non-active overflow 11-15) — only OPEN desktops stay visible */
+#workspaces button.empty:not(.active),
+#workspaces button:nth-child(11):not(.active),
+#workspaces button:nth-child(12):not(.active),
+#workspaces button:nth-child(13):not(.active),
+#workspaces button:nth-child(14):not(.active),
+#workspaces button:nth-child(15):not(.active) {
+    color: transparent;
+    text-shadow: none;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    margin: 0;
+    min-width: 0;
+    min-height: 0;
+    font-size: 0px;
+}
+
+/* Collapse the digit's GtkLabel too, else GTK reserves its natural width */
+#workspaces button.empty:not(.active) label,
+#workspaces button:nth-child(11):not(.active) label,
+#workspaces button:nth-child(12):not(.active) label,
+#workspaces button:nth-child(13):not(.active) label,
+#workspaces button:nth-child(14):not(.active) label,
+#workspaces button:nth-child(15):not(.active) label {
+    font-size: 0px;
+}
+
+/* Desktop number colours (gradient by workspace id) — NO underline unless active */
+#workspaces button:nth-child(1)   { color: #2c4820; text-shadow: 0 0 8px rgba(44,72,32,0.55),   0 0 3px rgba(44,72,32,0.75); }
+#workspaces button:nth-child(2)   { color: #32502e; text-shadow: 0 0 8px rgba(50,80,46,0.55),   0 0 3px rgba(50,80,46,0.75); }
+#workspaces button:nth-child(3)   { color: #38582c; text-shadow: 0 0 8px rgba(56,88,44,0.53),  0 0 3px rgba(56,88,44,0.73); }
+#workspaces button:nth-child(4)   { color: #3e6032; text-shadow: 0 0 8px rgba(62,96,50,0.52),  0 0 3px rgba(62,96,50,0.72); }
+#workspaces button:nth-child(5)   { color: #446838; text-shadow: 0 0 8px rgba(68,104,56,0.50),  0 0 3px rgba(68,104,56,0.70); }
+#workspaces button:nth-child(6)   { color: #4a703e; text-shadow: 0 0 8px rgba(74,112,62,0.50),  0 0 3px rgba(74,112,62,0.70); }
+#workspaces button:nth-child(7)   { color: #507844; text-shadow: 0 0 7px rgba(80,120,68,0.35),  0 0 2px rgba(80,120,68,0.52); }
+#workspaces button:nth-child(8)   { color: #56804a; text-shadow: 0 0 6px rgba(86,128,74,0.22),  0 0 2px rgba(86,128,74,0.36); }
+#workspaces button:nth-child(9)   { color: #5c8850; text-shadow: 0 0 5px rgba(92,136,80,0.14),  0 0 2px rgba(92,136,80,0.24); }
+#workspaces button:nth-child(10)  { color: #629256; text-shadow: 0 0 5px rgba(98,146,86,0.08), 0 0 1px rgba(98,146,86,0.14); }
+
+#workspaces button.active {
+    background-image: none;
+    border-radius: 6px;
+}
+
+/* Underline ONLY on the active desktop, coloured to match its number */
+#workspaces button:nth-child(1).active { border-bottom-color: #2c4820; }
+#workspaces button:nth-child(2).active { border-bottom-color: #32502e; }
+#workspaces button:nth-child(3).active { border-bottom-color: #38582c; }
+#workspaces button:nth-child(4).active { border-bottom-color: #3e6032; }
+#workspaces button:nth-child(5).active { border-bottom-color: #446838; }
+#workspaces button:nth-child(6).active { border-bottom-color: #4a703e; }
+#workspaces button:nth-child(7).active { border-bottom-color: #507844; }
+#workspaces button:nth-child(8).active { border-bottom-color: #56804a; }
+#workspaces button:nth-child(9).active { border-bottom-color: #5c8850; }
+#workspaces button:nth-child(10).active { border-bottom-color: #629256; }
+/* Overflow 11-15: reveal number + underline in desktop-10 colour only when active */
+#workspaces button:nth-child(11).active,
+#workspaces button:nth-child(12).active,
+#workspaces button:nth-child(13).active,
+#workspaces button:nth-child(14).active,
+#workspaces button:nth-child(15).active { color: #629256; border-bottom-color: #629256; }
+
+#workspaces button:hover {
+    background: rgba(60, 100, 40, 0.18);
+    background-image: none;
+    box-shadow: none;
+    border-image: none;
+    outline: none;
+}
+
+#workspaces button:nth-child(1):hover  { background: rgba(60,100,40,0.18); color: #4e6a40; }
+#workspaces button:nth-child(2):hover  { background: rgba(60,100,40,0.18); color: #547248; }
+#workspaces button:nth-child(3):hover  { background: rgba(60,100,40,0.18); color: #5a7a50; }
+#workspaces button:nth-child(4):hover  { background: rgba(60,100,40,0.18); color: #608258; }
+#workspaces button:nth-child(5):hover  { background: rgba(60,100,40,0.18); color: #668a60; }
+#workspaces button:nth-child(6):hover  { background: rgba(60,100,40,0.18); color: #6c9268; }
+#workspaces button:nth-child(7):hover  { background: rgba(60,100,40,0.18); color: #729a70; }
+#workspaces button:nth-child(8):hover  { background: rgba(60,100,40,0.18); color: #78a278; }
+#workspaces button:nth-child(9):hover  { background: rgba(60,100,40,0.18); color: #7eaa80; }
+#workspaces button:nth-child(10):hover { background: rgba(60,100,40,0.18); color: #84b288; }
+
+/* ─── Clock ──────────────────────────────────────────────────────────────── */
+#clock {
+    color: #e8dcc8;
+    font-weight: bold;
+    padding: 0 12px;
+}
+
+/* ─── Stat boxes — forest green + earthy brown family ───────────────────── */
+#cpu,
+#memory,
+#pulseaudio {
+    background: transparent;
+    border-top: 1px solid transparent;
+    border-bottom: 1px solid transparent;
+    border-radius: 6px;
+    padding: 2px 10px;
+    margin: 3px 2px;
+    font-weight: bold;
+    transition: background 0.22s ease-in-out,
+                border-color 0.22s ease-in-out;
+}
+
+#cpu:hover,
+#memory:hover,
+#pulseaudio:hover {
+    background: rgba(60, 100, 40, 0.07);
+}
+
+/* CPU — forest green */
+#cpu {
+    color: #508838;
+    border-top-color: #508838;
+    border-bottom-color: #508838;
+    text-shadow: 0 0 9px rgba(80,136,56,0.22), 0 0 2px rgba(80,136,56,0.38);
+}
+#cpu.warning  { color: #78b060; text-shadow: 0 0 8px rgba(120,176,96,0.18), 0 0 2px rgba(120,176,96,0.32); }
+#cpu.critical { color: #a0c888; text-shadow: 0 0 8px rgba(160,200,136,0.14), 0 0 2px rgba(160,200,136,0.24); }
+
+/* RAM — earthy brown, distinct from the greens */
+#memory {
+    color: #886840;
+    border-top-color: #886840;
+    border-bottom-color: #886840;
+    text-shadow: 0 0 9px rgba(136,104,64,0.22), 0 0 2px rgba(136,104,64,0.38);
+}
+
+/* VOL — dark brown */
+#pulseaudio {
+    color: #7a5428;
+    border-top-color: #7a5428;
+    border-bottom-color: #7a5428;
+    text-shadow: 0 0 9px rgba(122,84,40,0.22), 0 0 2px rgba(122,84,40,0.38);
+    font-family: "Noto Sans Mono", "Font Awesome 6 Free", monospace;
+}
+#pulseaudio.muted {
+    color: #2a2018;
+    text-shadow: none;
+}
+
+/* ─── Separator ──────────────────────────────────────────────────────────── */
+#custom-sep {
+    color: #182010;
+    padding: 0 2px;
+    font-size: 18px;
+}
+
+/* ─── Network ─────────────────────────────────────────────────────────────── */
+#custom-net-wifi,
+#custom-net-eth {
+    color: #e8dcc8;
+    font-weight: bold;
+    padding: 0 3px;
+    margin-left: -4px;
+}
+
+/* ─── Tray ───────────────────────────────────────────────────────────────── */
+#tray { padding: 0 6px; }
+#tray > .passive { -gtk-icon-effect: dim; }
+
+/* ─── Tooltips ───────────────────────────────────────────────────────────── */
+tooltip {
+    background: rgba(10, 12, 8, 0.97);
+    border: 1px solid #182010;
+    border-radius: 6px;
+    color: #d0dcc0;
+}
+
+/* ─── Weather — sage green ───────────────────────────────────────────────── */
+#custom-weather {
+    background: transparent;
+    border-top: 1px solid #6a9040;
+    border-bottom: 1px solid #6a9040;
+    border-radius: 6px;
+    padding: 2px 10px;
+    margin: 3px 2px;
+    font-weight: bold;
+    color: #6a9040;
+    font-family: "Noto Sans Mono", "Noto Color Emoji", monospace;
+    text-shadow: 0 0 9px rgba(106,144,64,0.22), 0 0 2px rgba(106,144,64,0.38);
+    transition: background 0.22s ease-in-out;
+}
+#custom-weather:hover { background: rgba(80,140,60,0.07); }
+#custom-weather.rain,
+#custom-weather.snow,
+#custom-weather.storm { color: #7aac50; border-top-color: #7aac50; border-bottom-color: #7aac50; text-shadow: 0 0 9px rgba(122,172,80,0.22), 0 0 2px rgba(122,172,80,0.38); }
+#custom-weather.cloudy { color: #508838; border-top-color: #508838; border-bottom-color: #508838; }
+#custom-weather.fog    { color: #886840; border-top-color: #886840; border-bottom-color: #886840; text-shadow: 0 0 9px rgba(136,104,64,0.22), 0 0 2px rgba(136,104,64,0.38); }

@@ -1,0 +1,229 @@
+/* Waybar BLUE theme — midnight navy → cerulean sky */
+
+* {
+    font-family: "Noto Sans Mono", monospace;
+    font-size: 13px;
+    border: none;
+    border-radius: 0;
+    min-height: 0;
+    padding: 0;
+    margin: 0;
+}
+
+window#waybar {
+    background-color: rgba(10, 14, 28, 0.97);
+    border-bottom: 2px solid #141a30;
+    color: #cdd6f4;
+}
+
+.modules-left,
+.modules-right,
+.modules-center {
+    margin: 0 4px;
+}
+
+/* ─── Workspace buttons — midnight navy → pale cerulean sky ──────────────── */
+#workspaces button {
+    padding: 1px 10px;
+    background: transparent;
+    background-image: none;
+    background-clip: padding-box;
+    border-radius: 6px;
+    border-bottom: 2px solid transparent;
+    margin: 3px 1px;
+    font-weight: bold;
+    box-shadow: none;
+    outline: none;
+    transition: background 0.22s ease-in-out,
+                border-color 0.22s ease-in-out;
+}
+
+/* Hide empty desktops (and non-active overflow 11-15) — only OPEN desktops stay visible */
+#workspaces button.empty:not(.active),
+#workspaces button:nth-child(11):not(.active),
+#workspaces button:nth-child(12):not(.active),
+#workspaces button:nth-child(13):not(.active),
+#workspaces button:nth-child(14):not(.active),
+#workspaces button:nth-child(15):not(.active) {
+    color: transparent;
+    text-shadow: none;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    margin: 0;
+    min-width: 0;
+    min-height: 0;
+    font-size: 0px;
+}
+
+/* Collapse the digit's GtkLabel too, else GTK reserves its natural width */
+#workspaces button.empty:not(.active) label,
+#workspaces button:nth-child(11):not(.active) label,
+#workspaces button:nth-child(12):not(.active) label,
+#workspaces button:nth-child(13):not(.active) label,
+#workspaces button:nth-child(14):not(.active) label,
+#workspaces button:nth-child(15):not(.active) label {
+    font-size: 0px;
+}
+
+/* Desktop number colours (gradient by workspace id) — NO underline unless active */
+#workspaces button:nth-child(1)   { color: #2a5aaa; text-shadow: 0 0 8px rgba(42,90,170,0.55),  0 0 3px rgba(42,90,170,0.75); }
+#workspaces button:nth-child(2)   { color: #2e62b4; text-shadow: 0 0 8px rgba(46,98,180,0.55),  0 0 3px rgba(46,98,180,0.75); }
+#workspaces button:nth-child(3)   { color: #326abc; text-shadow: 0 0 8px rgba(50,106,188,0.53),  0 0 3px rgba(50,106,188,0.73); }
+#workspaces button:nth-child(4)   { color: #2254a8; text-shadow: 0 0 8px rgba(34,84,168,0.52),  0 0 3px rgba(34,84,168,0.72); }
+#workspaces button:nth-child(5)   { color: #2860c0; text-shadow: 0 0 8px rgba(40,96,192,0.50),  0 0 3px rgba(40,96,192,0.70); }
+#workspaces button:nth-child(6)   { color: #3070bd; text-shadow: 0 0 8px rgba(48,112,189,0.50), 0 0 3px rgba(48,112,189,0.70); }
+#workspaces button:nth-child(7)   { color: #3a7ebc; text-shadow: 0 0 7px rgba(58,126,188,0.35), 0 0 2px rgba(58,126,188,0.52); }
+#workspaces button:nth-child(8)   { color: #4a8ec8; text-shadow: 0 0 6px rgba(74,142,200,0.22), 0 0 2px rgba(74,142,200,0.36); }
+#workspaces button:nth-child(9)   { color: #62a4d8; text-shadow: 0 0 5px rgba(98,164,216,0.14), 0 0 2px rgba(98,164,216,0.24); }
+#workspaces button:nth-child(10)  { color: #88bee8; text-shadow: 0 0 5px rgba(136,190,232,0.08),0 0 1px rgba(136,190,232,0.14); }
+
+#workspaces button.active {
+    background-image: none;
+    border-radius: 6px;
+}
+
+/* Underline ONLY on the active desktop, coloured to match its number */
+#workspaces button:nth-child(1).active { border-bottom-color: #2a5aaa; }
+#workspaces button:nth-child(2).active { border-bottom-color: #2e62b4; }
+#workspaces button:nth-child(3).active { border-bottom-color: #326abc; }
+#workspaces button:nth-child(4).active { border-bottom-color: #2254a8; }
+#workspaces button:nth-child(5).active { border-bottom-color: #2860c0; }
+#workspaces button:nth-child(6).active { border-bottom-color: #3070bd; }
+#workspaces button:nth-child(7).active { border-bottom-color: #3a7ebc; }
+#workspaces button:nth-child(8).active { border-bottom-color: #4a8ec8; }
+#workspaces button:nth-child(9).active { border-bottom-color: #62a4d8; }
+#workspaces button:nth-child(10).active { border-bottom-color: #88bee8; }
+/* Overflow 11-15: reveal number + underline in desktop-10 colour only when active */
+#workspaces button:nth-child(11).active,
+#workspaces button:nth-child(12).active,
+#workspaces button:nth-child(13).active,
+#workspaces button:nth-child(14).active,
+#workspaces button:nth-child(15).active { color: #88bee8; border-bottom-color: #88bee8; }
+
+#workspaces button:hover {
+    background: rgba(80, 140, 255, 0.18);
+    background-image: none;
+    box-shadow: none;
+    border-image: none;
+    outline: none;
+}
+
+#workspaces button:nth-child(1):hover  { background: rgba(80,140,255,0.18); color: #7493c7; }
+#workspaces button:nth-child(2):hover  { background: rgba(80,140,255,0.18); color: #7798ce; }
+#workspaces button:nth-child(3):hover  { background: rgba(80,140,255,0.18); color: #799ed3; }
+#workspaces button:nth-child(4):hover  { background: rgba(80,140,255,0.18); color: #6f8fc6; }
+#workspaces button:nth-child(5):hover  { background: rgba(80,140,255,0.18); color: #7397d6; }
+#workspaces button:nth-child(6):hover  { background: rgba(80,140,255,0.18); color: #78a2d4; }
+#workspaces button:nth-child(7):hover  { background: rgba(80,140,255,0.18); color: #7eabd3; }
+#workspaces button:nth-child(8):hover  { background: rgba(80,140,255,0.18); color: #89b5db; }
+#workspaces button:nth-child(9):hover  { background: rgba(80,140,255,0.18); color: #98c3e5; }
+#workspaces button:nth-child(10):hover { background: rgba(80,140,255,0.18); color: #b1d4f0; }
+
+/* ─── Clock — stays beige ────────────────────────────────────────────────── */
+#clock {
+    color: #e8dcc8;
+    font-weight: bold;
+    padding: 0 12px;
+}
+
+/* ─── Stat boxes — three distinct blue families ───────────────────────────── */
+#cpu,
+#memory,
+#pulseaudio {
+    background: transparent;
+    border-top: 1px solid transparent;
+    border-bottom: 1px solid transparent;
+    border-radius: 6px;
+    padding: 2px 10px;
+    margin: 3px 2px;
+    font-weight: bold;
+    transition: background 0.22s ease-in-out,
+                border-color 0.22s ease-in-out;
+}
+
+#cpu:hover,
+#memory:hover,
+#pulseaudio:hover {
+    background: rgba(80, 140, 255, 0.07);
+}
+
+/* CPU — cerulean, bright and energetic */
+#cpu {
+    color: #3a9ad8;
+    border-top-color: #3a9ad8;
+    border-bottom-color: #3a9ad8;
+    text-shadow: 0 0 9px rgba(58,154,216,0.22), 0 0 2px rgba(58,154,216,0.38);
+}
+#cpu.warning  { color: #8ac4e8; text-shadow: 0 0 8px rgba(138,196,232,0.18), 0 0 2px rgba(138,196,232,0.32); }
+#cpu.critical { color: #b8d8f0; text-shadow: 0 0 8px rgba(184,216,240,0.14), 0 0 2px rgba(184,216,240,0.24); }
+
+/* RAM — cobalt/royal blue, deeper and heavier */
+#memory {
+    color: #2858c0;
+    border-top-color: #2858c0;
+    border-bottom-color: #2858c0;
+    text-shadow: 0 0 9px rgba(40,88,192,0.22), 0 0 2px rgba(40,88,192,0.38);
+}
+
+/* VOL — indigo, shifts toward violet for distinction */
+#pulseaudio {
+    color: #5a3ac8;
+    border-top-color: #5a3ac8;
+    border-bottom-color: #5a3ac8;
+    text-shadow: 0 0 9px rgba(90,58,200,0.22), 0 0 2px rgba(90,58,200,0.38);
+    font-family: "Noto Sans Mono", "Font Awesome 6 Free", monospace;
+}
+#pulseaudio.muted {
+    color: #2a2a50;
+    text-shadow: none;
+}
+
+/* ─── Separator ──────────────────────────────────────────────────────────── */
+#custom-sep {
+    color: #1e2240;
+    padding: 0 2px;
+    font-size: 18px;
+}
+
+/* ─── Network ─────────────────────────────────────────────────────────────── */
+#custom-net-wifi,
+#custom-net-eth {
+    color: #e8dcc8;
+    font-weight: bold;
+    padding: 0 3px;
+    margin-left: -4px;
+}
+
+/* ─── Tray ───────────────────────────────────────────────────────────────── */
+#tray { padding: 0 6px; }
+#tray > .passive { -gtk-icon-effect: dim; }
+
+/* ─── Tooltips ───────────────────────────────────────────────────────────── */
+tooltip {
+    background: rgba(10, 14, 28, 0.97);
+    border: 1px solid #141a30;
+    border-radius: 6px;
+    color: #cdd6f4;
+}
+
+/* ─── Weather — steel blue ───────────────────────────────────────────────── */
+#custom-weather {
+    background: transparent;
+    border-top: 1px solid #4488cc;
+    border-bottom: 1px solid #4488cc;
+    border-radius: 6px;
+    padding: 2px 10px;
+    margin: 3px 2px;
+    font-weight: bold;
+    color: #4488cc;
+    font-family: "Noto Sans Mono", "Noto Color Emoji", monospace;
+    text-shadow: 0 0 9px rgba(68,136,204,0.22), 0 0 2px rgba(68,136,204,0.38);
+    transition: background 0.22s ease-in-out;
+}
+#custom-weather:hover { background: rgba(80,140,255,0.07); }
+#custom-weather.rain,
+#custom-weather.snow,
+#custom-weather.storm { color: #62a4d8; border-top-color: #62a4d8; border-bottom-color: #62a4d8; text-shadow: 0 0 9px rgba(98,164,216,0.22), 0 0 2px rgba(98,164,216,0.38); }
+#custom-weather.cloudy { color: #3a7ebc; border-top-color: #3a7ebc; border-bottom-color: #3a7ebc; }
+#custom-weather.fog    { color: #2858c0; border-top-color: #2858c0; border-bottom-color: #2858c0; text-shadow: 0 0 9px rgba(40,88,192,0.22), 0 0 2px rgba(40,88,192,0.38); }

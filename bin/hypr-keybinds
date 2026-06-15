@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+# SUPER+K — show all Hyprland keybindings in a styled wofi viewer.
+# Display-only: selecting a row does nothing.
+
+(sleep 0.25 && hyprctl dispatch focuswindow class:wofi 2>/dev/null) &
+
+hyprctl -j binds 2>/dev/null | python3 - << 'PYEOF'
+import sys, json
+
+data = json.load(sys.stdin)
+
+# Modifier bit → label (verified against hyprctl output: SUPER=64, SHIFT=1, CTRL=4, ALT=8)
+MOD_BITS = [(64, "SUPER"), (4, "CTRL"), (8, "ALT"), (1, "SHIFT")]
+
+def mod_str(mask):
+    return " + ".join(name for bit, name in MOD_BITS if mask & bit)
+
+def human(dispatcher, arg):
+    a = arg.lower()
+    dispatch_map = {
+        "killactive":          "Close Window",
+        "togglefloating":      "Toggle Float",
+        "fullscreen":          "Fullscreen",
+        "pseudo":              "Toggle Pseudo",
+        "togglesplit":         "Toggle Split",
+        "layoutmsg":           f"Layout → {arg}",
+        "movefocus":           f"Focus {arg.title()}",
+        "workspace":           f"Go to Workspace {arg}",
+        "movetoworkspace":     f"Move Window → Workspace {arg}",
+        "togglespecialworkspace": "Toggle Scratchpad",
+        "exit":                "Exit Hyprland",
+    }
+    if dispatcher in dispatch_map:
+        return dispatch_map[dispatcher]
+    # exec — derive name from the command
+    cmd = arg.split('/')[-1].split(' ')[0]
+    exec_map = {
+        "kitty":                "Terminal",
+        "thunar":               "File Manager",
+        "dolphin":              "File Manager",
+        "wofi":                 "App Launcher",
+        "wallpaper-picker":     "Wallpaper Picker",
+        "hypr-keybinds":        "Keybind Viewer",
+        "hypr-launcher":        "Quick Launcher",
+        "hyprlock":             "Lock Screen",
+        "hyprctl":              f"Hyprctl: {' '.join(arg.split()[1:])}",
+    }
+    return exec_map.get(cmd, arg[:48])
+
+lines = []
+for b in data:
+    if b.get("mouse") or b.get("catch_all"):
+        continue
+    mods  = mod_str(b["modmask"])
+    key   = b["key"].upper()
+    combo = f"{mods} + {key}" if mods else key
+    desc  = b.get("description") or human(b["dispatcher"], b["arg"])
+    lines.append(f"  {combo:<26}  {desc}")
+
+print("\n".join(lines))
+PYEOF | wofi --dmenu \
+    --prompt "  Keybindings" \
+    --width 660 \
+    --height 540 \
+    --cache-file /dev/null \
+    --style "$HOME/.config/wofi/style-keybinds.css" \
+    > /dev/null

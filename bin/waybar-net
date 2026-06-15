@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# waybar-net <iface> <label>
+# Output: "WIFI 1.2M"  — download only, auto-scales B/s -> K/s -> M/s -> G/s
+iface="${1:-wlan0}"
+label="${2:-NET}"
+state="/tmp/waybar-net-${iface}.state"
+
+if [[ ! -d "/sys/class/net/$iface" ]] \
+   || [[ "$(< /sys/class/net/$iface/operstate)" != "up" ]]; then
+    printf "%s <span foreground='#B4AEA4'>---</span>\n" "$label"
+    exit
+fi
+
+rx=$(< "/sys/class/net/$iface/statistics/rx_bytes")
+now=$(date +%s%3N)
+
+rxBps=0
+if [[ -f "$state" ]]; then
+    read -r p_rx p_t < "$state"
+    dt=$(( now - p_t ))
+    if (( dt > 200 )); then
+        rxBps=$(awk "BEGIN{printf \"%d\", ($rx - $p_rx) * 1000 / $dt}")
+    fi
+fi
+echo "$rx $now" > "$state"
+
+fmt() {
+    local b=$1
+    if   (( b >= 1073741824 )); then awk "BEGIN{printf \"%.1fG\", $b/1073741824}"
+    elif (( b >=    1048576 )); then awk "BEGIN{printf \"%.1fM\", $b/1048576}"
+    elif (( b >=       1024 )); then awk "BEGIN{printf \"%.1fK\", $b/1024}"
+    else                              printf "%dB" "$b"
+    fi
+}
+
+printf "%s <span foreground='#B4AEA4'>%s</span>\n" "$label" "$(fmt "$rxBps")"

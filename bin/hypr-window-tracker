@@ -1,0 +1,214 @@
+#!/usr/bin/env python3
+"""
+hypr-window-tracker — event daemon that records the last closed Hyprland window.
+
+Connects to Hyprland's socket2 event stream and maintains a live registry of
+open windows. Whenever a window closes, its snapshot (class, cwd, foreground
+command) is written to STATE_FILE so hypr-reopen-last can reopen it.
+
+Start via exec-once in hyprland.conf:
+    exec-once = hypr-window-tracker
+"""
+
+import json
+import os
+import socket
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+STATE_FILE = Path.home() / ".local/share/hypr-reopen/last_closed.json"
+STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+
+SHELLS = {"bash", "zsh", "fish", "sh", "dash", "ksh"}
+TERMINAL_CLASSES = {"kitty", "foot", "alacritty", "wezterm", "gnome-terminal", "xterm"}
+
+
+# ---------------------------------------------------------------------------
+# /proc helpers
+# ---------------------------------------------------------------------------
+
+def proc_readlink(path):
+    try:
+        return os.readlink(path)
+    except OSError:
+        return None
+
+
+def proc_cmdline(pid):
+    try:
+        with open(f"/proc/{pid}/cmdline", "rb") as f:
+            return f.read().decode("utf-8", errors="replace").replace("\x00", " ").strip()
+    except OSError:
+        return None
+
+
+def exe_name(pid):
+    exe = proc_readlink(f"/proc/{pid}/exe") or ""
+    return os.path.basename(exe)
+
+
+def children_of(pid):
+    try:
+        out = subprocess.run(
+            ["pgrep", "-P", str(pid)], capture_output=True, text=True
+        ).stdout.strip()
+        return [int(p) for p in out.split() if p]
+    except Exception:
+        return []
+
+
+# ---------------------------------------------------------------------------
+# Terminal introspection
+# ---------------------------------------------------------------------------
+
+def find_shell_child(terminal_pid):
+    """Return the PID of the direct shell child of a terminal process."""
+    for child_pid in children_of(terminal_pid):
+        if exe_name(child_pid) in SHELLS:
+            return child_pid
+    return None
+
+
+def terminal_info(terminal_pid):
+    """
+    Walk terminal -> shell -> foreground child.
+
+    Returns (foreground_cmdline, cwd) where:
+    - cwd       is the shell's working directory (where you'd want to reopen)
+    - foreground_cmdline is the command running inside the shell, or None if
+      it's just an idle shell prompt
+    """
+    shell_pid = find_shell_child(terminal_pid)
+    if shell_pid is None:
+        return None, proc_readlink(f"/proc/{terminal_pid}/cwd")
+
+    shell_cwd = proc_readlink(f"/proc/{shell_pid}/cwd") or str(Path.home())
+
+    for grandchild_pid in children_of(shell_pid):
+        name = exe_name(grandchild_pid)
+        if name and name not in SHELLS:
+            return proc_cmdline(grandchild_pid), shell_cwd
+
+    return None, shell_cwd
+
+
+# ---------------------------------------------------------------------------
+# hyprctl wrappers
+# ---------------------------------------------------------------------------
+
+def hyprctl(*args):
+    r = subprocess.run(["hyprctl"] + list(args), capture_output=True, text=True)
+    return r.stdout
+
+
+def get_clients():
+    try:
+        return {c["address"]: c for c in json.loads(hyprctl("-j", "clients"))}
+    except Exception:
+        return {}
+
+
+# ---------------------------------------------------------------------------
+# Snapshot builder
+# ---------------------------------------------------------------------------
+
+def snapshot(client):
+    """Build a serialisable dict for a window while it is still alive."""
+    pid = client.get("pid", 0)
+    wclass = client.get("class", "")
+
+    snap = {
+        "class": wclass,
+        "title": client.get("title", ""),
+        "pid": pid,
+        "cwd": None,
+        "foreground_cmd": None,
+    }
+
+    if wclass.lower() in TERMINAL_CLASSES and pid:
+        cmd, cwd = terminal_info(pid)
+        snap["cwd"] = cwd
+        snap["foreground_cmd"] = cmd
+    elif pid:
+        snap["cwd"] = proc_readlink(f"/proc/{pid}/cwd")
+
+    return snap
+
+
+# ---------------------------------------------------------------------------
+# Event loop
+# ---------------------------------------------------------------------------
+
+def connect_socket():
+    xdg = os.environ.get("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}")
+    sig = os.environ.get("HYPRLAND_INSTANCE_SIGNATURE", "")
+    path = f"{xdg}/hypr/{sig}/.socket2.sock"
+    sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    sock.connect(path)
+    return sock
+
+
+def main():
+    registry = {}  # address (with 0x) -> snapshot dict
+
+    # Seed registry from windows already open when we start
+    for addr, client in get_clients().items():
+        registry[addr] = snapshot(client)
+
+    sock = connect_socket()
+    buf = ""
+
+    while True:
+        try:
+            data = sock.recv(4096).decode("utf-8", errors="replace")
+        except OSError:
+            break
+        if not data:
+            break
+
+        buf += data
+        while "\n" in buf:
+            line, buf = buf.split("\n", 1)
+            line = line.strip()
+            if ">>" not in line:
+                continue
+
+            event, payload = line.split(">>", 1)
+
+            # -- window opened: register it once it has settled ---------------
+            if event == "openwindow":
+                # payload: address,workspacename,class,title  (no 0x prefix)
+                addr = "0x" + payload.split(",")[0]
+                time.sleep(0.15)
+                clients = get_clients()
+                if addr in clients:
+                    registry[addr] = snapshot(clients[addr])
+
+            # -- focus changed: refresh the now-active window -----------------
+            elif event == "activewindow":
+                try:
+                    active = json.loads(hyprctl("-j", "activewindow"))
+                    addr = active.get("address", "")
+                    if addr:
+                        registry[addr] = snapshot(active)
+                except Exception:
+                    pass
+
+            # -- title changed: terminal likely changed its cwd or command ----
+            elif event == "windowtitle":
+                addr = "0x" + payload.strip()
+                clients = get_clients()
+                if addr in clients:
+                    registry[addr] = snapshot(clients[addr])
+
+            # -- window closed: persist the snapshot --------------------------
+            elif event == "closewindow":
+                addr = "0x" + payload.strip()
+                if addr in registry:
+                    STATE_FILE.write_text(json.dumps(registry.pop(addr), indent=2))
+
+
+if __name__ == "__main__":
+    main()

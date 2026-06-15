@@ -1,0 +1,7 @@
+#!/bin/bash
+WORKSPACE=$(hyprctl activeworkspace -j | jq '.id')
+hyprctl clients -j | jq -r --argjson ws "$WORKSPACE" \
+    '.[] | select(.workspace.id == $ws) | .address' | \
+while read -r addr; do
+    hyprctl dispatch sendshortcut ",Return,address:$addr"
+done

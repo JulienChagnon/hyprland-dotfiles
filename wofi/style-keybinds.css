@@ -1,0 +1,56 @@
+/* Keybind viewer — monospace, wide, neutral */
+* {
+    font-family: "Noto Sans Mono", monospace;
+    font-size: 13px;
+}
+
+window {
+    background-color: rgba(18, 18, 24, 0.97);
+    border: 1px solid #2e2e3a;
+    border-radius: 12px;
+    color: #cdd6f4;
+}
+
+#outer-box {
+    padding: 8px;
+}
+
+#input {
+    background-color: #1e1e2a;
+    border: 1px solid rgba(130, 130, 204, 0.45);
+    border-radius: 7px;
+    color: #e8dcc8;
+    padding: 6px 12px;
+    margin-bottom: 6px;
+}
+
+#input:focus {
+    border-color: rgba(130, 130, 204, 0.75);
+}
+
+#scroll {
+    margin: 0;
+}
+
+#entry {
+    padding: 3px 10px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+}
+
+#entry:hover {
+    background-color: rgba(130, 130, 204, 0.12);
+}
+
+#entry:selected {
+    background-color: rgba(130, 130, 204, 0.22);
+    border-color: rgba(130, 130, 204, 0.45);
+}
+
+#text {
+    color: #cdd6f4;
+}
+
+#text:selected {
+    color: #e8dcc8;
+}

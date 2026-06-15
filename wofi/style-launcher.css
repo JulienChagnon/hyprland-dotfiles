@@ -1,0 +1,58 @@
+/* Curated app launcher — larger, warmer selection highlight */
+* {
+    font-family: "Noto Sans Mono", monospace;
+    font-size: 14px;
+}
+
+window {
+    background-color: rgba(18, 18, 24, 0.97);
+    border: 1px solid #2e2e3a;
+    border-radius: 12px;
+    color: #cdd6f4;
+}
+
+#outer-box {
+    padding: 10px;
+}
+
+#input {
+    background-color: #1e1e2a;
+    border: 1px solid rgba(186, 64, 132, 0.45);
+    border-radius: 7px;
+    color: #e8dcc8;
+    padding: 7px 14px;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+#input:focus {
+    border-color: rgba(186, 64, 132, 0.80);
+}
+
+#scroll {
+    margin: 0;
+}
+
+#entry {
+    padding: 6px 14px;
+    border-radius: 7px;
+    border: 1px solid transparent;
+}
+
+#entry:hover {
+    background-color: rgba(186, 64, 132, 0.12);
+}
+
+#entry:selected {
+    background-color: rgba(186, 64, 132, 0.22);
+    border-color: rgba(186, 64, 132, 0.50);
+}
+
+#text {
+    color: #cdd6f4;
+}
+
+#text:selected {
+    color: #ecaabf;
+    font-weight: bold;
+}

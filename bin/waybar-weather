@@ -1,0 +1,45 @@
+#!/usr/bin/env python3
+"""Wraps wttrbar: swaps sun icons for moon icons between sunset and sunrise."""
+import subprocess, json, re, sys
+from datetime import datetime, time as dtime
+
+SPAN = "<span foreground='#7B96B6'>"
+result = subprocess.run(
+    ['wttrbar', '--custom-indicator', '{ICON} ' + SPAN + '{temp_C}°</span>', '--hide-conditions'],
+    capture_output=True, text=True
+)
+
+try:
+    data = json.loads(result.stdout)
+except Exception:
+    sys.stdout.write(result.stdout)
+    sys.exit(0)
+
+# Parse actual sunrise/sunset from the tooltip so it's accurate year-round
+tooltip = data.get('tooltip', '')
+now = datetime.now().time()
+is_night = False
+m = re.search(r'🌅\s*(\d+:\d+).*?🌇\s*(\d+:\d+)', tooltip)
+if m:
+    def t(s):
+        h, mn = map(int, s.split(':'))
+        return dtime(h, mn)
+    is_night = not (t(m.group(1)) <= now <= t(m.group(2)))
+else:
+    # Fallback if tooltip format changes
+    is_night = datetime.now().hour >= 21 or datetime.now().hour < 6
+
+if is_night:
+    text = data.get('text', '')
+    for old, new in [
+        ('☀️',  '🌙'),      # clear → moon
+        ('🌤️', '🌙'),      # sunny with small cloud → moon
+        ('🌤',  '🌙'),      # same without variation selector
+        ('⛅',  '🌙⛅'),    # partly cloudy → moon + cloud
+        ('🌥️', '🌙☁️'),   # mostly cloudy → moon + cloud
+        ('🌥',  '🌙☁️'),
+    ]:
+        text = text.replace(old, new)
+    data['text'] = text
+
+print(json.dumps(data))

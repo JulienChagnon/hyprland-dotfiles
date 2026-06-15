@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# wallpaper-restore — re-applies the wallpaper from hyprpaper.conf by explicit
+# monitor name once the monitor is actually present.
+#
+# Why: at boot `exec-once = hyprpaper` reads `wallpaper = ,<path>` (',' = all
+# monitors). During Hyprland startup the real monitor (DP-1) often isn't
+# registered yet, so hyprpaper applies it to an empty "" monitor and never
+# repaints DP-1 -> black screen with the Hyprland logo/splash showing through.
+# This waits for both the hyprpaper socket AND at least one monitor to appear
+# before pushing the wallpaper by real monitor name.
+
+conf="$HOME/.config/hypr/hyprpaper.conf"
+[ -f "$conf" ] || exit 0
+
+# Path after the comma on the first "wallpaper =" line (awk, not sed).
+wall=$(awk -F',' '/^[[:space:]]*wallpaper[[:space:]]*=/{sub(/[[:space:]]+$/,"",$2); print $2; exit}' "$conf")
+[ -z "$wall" ] && exit 0
+[ -f "$wall" ] || exit 0
+
+pgrep -x hyprpaper >/dev/null || hyprpaper &
+
+# hyprctl's hyprpaper IPC is protocol-mismatched on this box; talk to the socket.
+sock="/run/user/$(id -u)/hypr/${HYPRLAND_INSTANCE_SIGNATURE}/.hyprpaper.sock"
+for _ in $(seq 1 60); do [ -S "$sock" ] && break; sleep 0.25; done
+[ -S "$sock" ] || exit 1
+
+# Wait for at least one monitor to be registered — hyprpaper socket is ready
+# before monitors appear, so querying immediately returns an empty list.
+for _ in $(seq 1 80); do
+    count=$(hyprctl monitors -j 2>/dev/null | jq 'length' 2>/dev/null)
+    [ "${count:-0}" -gt 0 ] && break
+    sleep 0.25
+done
+
+ipc() {
+    python3 -c "
+import socket, sys
+s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+s.connect('$sock')
+s.send(sys.argv[1].encode())
+s.recv(1024)
+s.close()
+" "$1"
+}
+
+ipc "preload $wall"
+while IFS= read -r mon; do
+    [ -n "$mon" ] && ipc "wallpaper $mon,$wall"
+done < <(hyprctl monitors -j | jq -r '.[].name')
+ipc "unload unused"

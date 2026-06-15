@@ -1,0 +1,232 @@
+/* Waybar GREY theme — near-black charcoal → medium slate */
+
+* {
+    font-family: "Noto Sans Mono", monospace;
+    font-size: 13px;
+    border: none;
+    border-radius: 0;
+    min-height: 0;
+    padding: 0;
+    margin: 0;
+}
+
+window#waybar {
+    background-color: rgba(18, 18, 20, 0.97);
+    border-bottom: 2px solid #282830;
+    color: #e4e4e4;
+}
+
+.modules-left,
+.modules-right,
+.modules-center {
+    margin: 0 4px;
+}
+
+/* ─── Workspace buttons — dark charcoal → medium slate (shade only) ──────── */
+#workspaces button {
+    padding: 1px 10px;
+    background: transparent;
+    background-image: none;
+    background-clip: padding-box;
+    border-radius: 6px;
+    border-bottom: 2px solid transparent;
+    margin: 3px 1px;
+    font-weight: bold;
+    box-shadow: none;
+    outline: none;
+    transition: background 0.22s ease-in-out,
+                border-color 0.22s ease-in-out;
+}
+
+/* Hide empty desktops (and non-active overflow 11-15) — only OPEN desktops stay visible */
+#workspaces button.empty:not(.active),
+#workspaces button:nth-child(11):not(.active),
+#workspaces button:nth-child(12):not(.active),
+#workspaces button:nth-child(13):not(.active),
+#workspaces button:nth-child(14):not(.active),
+#workspaces button:nth-child(15):not(.active) {
+    color: transparent;
+    text-shadow: none;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    margin: 0;
+    min-width: 0;
+    min-height: 0;
+    font-size: 0px;
+}
+
+/* Collapse the digit's GtkLabel too, else GTK reserves its natural width */
+#workspaces button.empty:not(.active) label,
+#workspaces button:nth-child(11):not(.active) label,
+#workspaces button:nth-child(12):not(.active) label,
+#workspaces button:nth-child(13):not(.active) label,
+#workspaces button:nth-child(14):not(.active) label,
+#workspaces button:nth-child(15):not(.active) label {
+    font-size: 0px;
+}
+
+/* Desktop number colours (gradient by workspace id) — NO underline unless active */
+#workspaces button:nth-child(1)   { color: #505062; text-shadow: 0 0 8px rgba(80,80,98,0.55),   0 0 3px rgba(80,80,98,0.75); }
+#workspaces button:nth-child(2)   { color: #585870; text-shadow: 0 0 8px rgba(88,88,112,0.55),  0 0 3px rgba(88,88,112,0.75); }
+#workspaces button:nth-child(3)   { color: #60607a; text-shadow: 0 0 8px rgba(96,96,122,0.53),  0 0 3px rgba(96,96,122,0.73); }
+#workspaces button:nth-child(4)   { color: #686882; text-shadow: 0 0 8px rgba(104,104,130,0.52),0 0 3px rgba(104,104,130,0.72); }
+#workspaces button:nth-child(5)   { color: #70708a; text-shadow: 0 0 8px rgba(112,112,138,0.50),0 0 3px rgba(112,112,138,0.70); }
+#workspaces button:nth-child(6)   { color: #787892; text-shadow: 0 0 8px rgba(120,120,146,0.50),0 0 3px rgba(120,120,146,0.70); }
+#workspaces button:nth-child(7)   { color: #80809a; text-shadow: 0 0 7px rgba(128,128,154,0.35),0 0 2px rgba(128,128,154,0.52); }
+#workspaces button:nth-child(8)   { color: #8888a2; text-shadow: 0 0 6px rgba(136,136,162,0.22),0 0 2px rgba(136,136,162,0.36); }
+#workspaces button:nth-child(9)   { color: #9090aa; text-shadow: 0 0 5px rgba(144,144,170,0.14),0 0 2px rgba(144,144,170,0.24); }
+#workspaces button:nth-child(10)  { color: #9898b2; text-shadow: 0 0 5px rgba(152,152,178,0.08),0 0 1px rgba(152,152,178,0.14); }
+
+#workspaces button.active {
+    background-image: none;
+    border-radius: 6px;
+    color: #9c9cb4;
+    border-bottom-color: rgba(156, 156, 180, 0.55);
+    text-shadow: 0 0 6px rgba(156,156,180,0.20), 0 0 2px rgba(156,156,180,0.32);
+}
+
+/* Underline ONLY on the active desktop, coloured to match its number */
+#workspaces button:nth-child(1).active { border-bottom-color: #505062; }
+#workspaces button:nth-child(2).active { border-bottom-color: #585870; }
+#workspaces button:nth-child(3).active { border-bottom-color: #60607a; }
+#workspaces button:nth-child(4).active { border-bottom-color: #686882; }
+#workspaces button:nth-child(5).active { border-bottom-color: #70708a; }
+#workspaces button:nth-child(6).active { border-bottom-color: #787892; }
+#workspaces button:nth-child(7).active { border-bottom-color: #80809a; }
+#workspaces button:nth-child(8).active { border-bottom-color: #8888a2; }
+#workspaces button:nth-child(9).active { border-bottom-color: #9090aa; }
+#workspaces button:nth-child(10).active { border-bottom-color: #9898b2; }
+/* Overflow 11-15: reveal number + underline in desktop-10 colour only when active */
+#workspaces button:nth-child(11).active,
+#workspaces button:nth-child(12).active,
+#workspaces button:nth-child(13).active,
+#workspaces button:nth-child(14).active,
+#workspaces button:nth-child(15).active { color: #9898b2; border-bottom-color: #9898b2; }
+
+#workspaces button:hover {
+    background: rgba(160, 160, 180, 0.18);
+    background-image: none;
+    box-shadow: none;
+    border-image: none;
+    outline: none;
+}
+
+#workspaces button:nth-child(1):hover  { background: rgba(160,160,180,0.18); color: #a8a8c0; }
+#workspaces button:nth-child(2):hover  { background: rgba(160,160,180,0.18); color: #9090a4; }
+#workspaces button:nth-child(3):hover  { background: rgba(160,160,180,0.18); color: #9898ae; }
+#workspaces button:nth-child(4):hover  { background: rgba(160,160,180,0.18); color: #a0a0b8; }
+#workspaces button:nth-child(5):hover  { background: rgba(160,160,180,0.18); color: #a8a8c0; }
+#workspaces button:nth-child(6):hover  { background: rgba(160,160,180,0.18); color: #b0b0c8; }
+#workspaces button:nth-child(7):hover  { background: rgba(160,160,180,0.18); color: #b8b8ce; }
+#workspaces button:nth-child(8):hover  { background: rgba(160,160,180,0.18); color: #c0c0d4; }
+#workspaces button:nth-child(9):hover  { background: rgba(160,160,180,0.18); color: #c8c8da; }
+#workspaces button:nth-child(10):hover { background: rgba(160,160,180,0.18); color: #d0d0e0; }
+
+/* ─── Clock ──────────────────────────────────────────────────────────────── */
+#clock {
+    color: #e8dcc8;
+    font-weight: bold;
+    padding: 0 12px;
+}
+
+/* ─── Stat boxes — three grey-adjacent hues ──────────────────────────────── */
+#cpu,
+#memory,
+#pulseaudio {
+    background: transparent;
+    border-top: 1px solid transparent;
+    border-bottom: 1px solid transparent;
+    border-radius: 6px;
+    padding: 2px 10px;
+    margin: 3px 2px;
+    font-weight: bold;
+    transition: background 0.22s ease-in-out,
+                border-color 0.22s ease-in-out;
+}
+
+#cpu:hover,
+#memory:hover,
+#pulseaudio:hover {
+    background: rgba(160, 160, 180, 0.07);
+}
+
+/* CPU — warm blue-grey */
+#cpu {
+    color: #8890a8;
+    border-top-color: #8890a8;
+    border-bottom-color: #8890a8;
+    text-shadow: 0 0 9px rgba(136,144,168,0.22), 0 0 2px rgba(136,144,168,0.38);
+}
+#cpu.warning  { color: #a8b0c8; text-shadow: 0 0 8px rgba(168,176,200,0.18), 0 0 2px rgba(168,176,200,0.32); }
+#cpu.critical { color: #c8ccd8; text-shadow: 0 0 8px rgba(200,204,216,0.14), 0 0 2px rgba(200,204,216,0.24); }
+
+/* RAM — cool slate-blue */
+#memory {
+    color: #6878a0;
+    border-top-color: #6878a0;
+    border-bottom-color: #6878a0;
+    text-shadow: 0 0 9px rgba(104,120,160,0.22), 0 0 2px rgba(104,120,160,0.38);
+}
+
+/* VOL — muted lavender */
+#pulseaudio {
+    color: #8878a8;
+    border-top-color: #8878a8;
+    border-bottom-color: #8878a8;
+    text-shadow: 0 0 9px rgba(136,120,168,0.22), 0 0 2px rgba(136,120,168,0.38);
+    font-family: "Noto Sans Mono", "Font Awesome 6 Free", monospace;
+}
+#pulseaudio.muted {
+    color: #3a3a48;
+    text-shadow: none;
+}
+
+/* ─── Separator ──────────────────────────────────────────────────────────── */
+#custom-sep {
+    color: #282830;
+    padding: 0 2px;
+    font-size: 18px;
+}
+
+/* ─── Network ─────────────────────────────────────────────────────────────── */
+#custom-net-wifi,
+#custom-net-eth {
+    color: #e8dcc8;
+    font-weight: bold;
+    padding: 0 3px;
+    margin-left: -4px;
+}
+
+/* ─── Tray ───────────────────────────────────────────────────────────────── */
+#tray { padding: 0 6px; }
+#tray > .passive { -gtk-icon-effect: dim; }
+
+/* ─── Tooltips ───────────────────────────────────────────────────────────── */
+tooltip {
+    background: rgba(18, 18, 20, 0.97);
+    border: 1px solid #282830;
+    border-radius: 6px;
+    color: #e4e4e4;
+}
+
+/* ─── Weather — cool blue-grey ───────────────────────────────────────────── */
+#custom-weather {
+    background: transparent;
+    border-top: 1px solid #7888a0;
+    border-bottom: 1px solid #7888a0;
+    border-radius: 6px;
+    padding: 2px 10px;
+    margin: 3px 2px;
+    font-weight: bold;
+    color: #7888a0;
+    font-family: "Noto Sans Mono", "Noto Color Emoji", monospace;
+    text-shadow: 0 0 9px rgba(120,136,160,0.22), 0 0 2px rgba(120,136,160,0.38);
+    transition: background 0.22s ease-in-out;
+}
+#custom-weather:hover { background: rgba(160,160,180,0.07); }
+#custom-weather.rain,
+#custom-weather.snow,
+#custom-weather.storm { color: #9090a8; border-top-color: #9090a8; border-bottom-color: #9090a8; text-shadow: 0 0 9px rgba(144,144,168,0.22), 0 0 2px rgba(144,144,168,0.38); }
+#custom-weather.cloudy { color: #6878a0; border-top-color: #6878a0; border-bottom-color: #6878a0; }
+#custom-weather.fog    { color: #8878a8; border-top-color: #8878a8; border-bottom-color: #8878a8; text-shadow: 0 0 9px rgba(136,120,168,0.22), 0 0 2px rgba(136,120,168,0.38); }

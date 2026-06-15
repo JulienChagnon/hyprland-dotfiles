@@ -1,0 +1,45 @@
+#!/usr/bin/env python3
+"""Display a 30-min RAM usage history chart in the terminal."""
+import os, sys, time
+
+LOG = os.path.expanduser("~/.local/share/waybar/ram_history.log")
+BAR_W = 36
+
+try:
+    with open(LOG) as f:
+        lines = [l.strip().split() for l in f if l.strip()]
+    data = [(int(ts), int(pct)) for ts, pct in lines if len((ts, pct)) == 2]
+except FileNotFoundError:
+    print("\033[1;31m  No RAM history yet — logger may not be running.\033[0m")
+    input("\n  Press Enter to close…")
+    sys.exit(1)
+except ValueError:
+    data = []
+
+if not data:
+    print("\033[1;33m  No data available yet.\033[0m")
+    input("\n  Press Enter to close…")
+    sys.exit(0)
+
+span_min = len(data) * 30 // 60
+print(f"\n\033[1;35m  RAM Usage — last {span_min} min  ({len(data)} samples)\033[0m\n")
+print(f"  {'Time ':>5}  {'':{'<'}{BAR_W}}  Use%")
+print("  " + "─" * (BAR_W + 14))
+
+for ts, pct in data:
+    t = time.strftime("%H:%M", time.localtime(ts))
+    filled = int(pct * BAR_W / 100)
+    if pct < 55:
+        c = "\033[32m"     # green
+    elif pct < 75:
+        c = "\033[33m"     # yellow
+    else:
+        c = "\033[31m"     # red
+    bar = "█" * filled + "░" * (BAR_W - filled)
+    print(f"  {t}  {c}{bar}\033[0m  {pct:3d}%")
+
+cur_total = int(open("/proc/meminfo").readline().split()[1])
+cur_avail  = int([l for l in open("/proc/meminfo") if "MemAvailable" in l][0].split()[1])
+cur_used   = (cur_total - cur_avail) / 1024 / 1024
+print(f"\n  Current: \033[1m{cur_used:.1f} GiB\033[0m / {cur_total/1024/1024:.1f} GiB")
+input("\n  Press Enter to close…")

@@ -1,0 +1,100 @@
+// Waybar configuration for Hyprland — BROWN & GREEN theme
+// Docs: https://github.com/Alexays/Waybar/wiki/Configuration
+{
+    "layer": "top",
+    "position": "top",
+    "height": 36,
+    "spacing": 6,
+
+    "modules-left": ["hyprland/workspaces"],
+    "modules-center": ["clock"],
+    // custom/sep is the fixed vertical bar between stats and network
+    "modules-right": ["custom/weather", "cpu", "memory", "pulseaudio", "tray", "custom/sep", "custom/net-wifi", "custom/net-eth"],
+
+    // Workspace buttons — persistent 1-15; empty desktops hidden via CSS so only open ones show
+    "hyprland/workspaces": {
+        "format": "{id}",
+        "on-click": "activate",
+        "all-outputs": true,
+        "sort-by-number": true,
+        "persistent-workspaces": {
+            "*": 15
+        }
+    },
+
+    // Clock — hover for calendar tooltip
+    "clock": {
+        "format": "{:%a %d %b  %I:%M %p}",
+        "tooltip-format": "<big>{:%B %Y}</big>\n<tt><small>{calendar}</small></tt>",
+        "format-alt": "{:%I:%M %p}"
+    },
+
+    // CPU — click opens btop in a floating terminal
+    "cpu": {
+        "format": "CPU <span foreground='#78b060'>{usage:>3}%</span>",
+        "interval": 2,
+        "tooltip": false,
+        "on-click": "kitty --class waybar-chart -e btop",
+        "states": {
+            "warning": 70,
+            "critical": 90
+        }
+    },
+
+    // RAM — click shows 30-min history chart
+    "memory": {
+        "format": "RAM <span foreground='#a88860'>{used:.1f}GB</span>",
+        "interval": 5,
+        "tooltip-format": "Used: {used:.1f}G / {total:.1f}G\nAvailable: {avail:.1f}G",
+        "on-click": "kitty --class waybar-chart -e $HOME/.local/bin/waybar-ram-chart"
+    },
+
+    // Fixed vertical separator — keeps network from shifting stat modules
+    "custom/sep": {
+        "format": "│",
+        "interval": "once",
+        "tooltip": false
+    },
+
+    // WiFi — custom exec always outputs fixed-width Mb/s, preventing layout shifts
+    "custom/net-wifi": {
+        "exec": "$HOME/.local/bin/waybar-net wlan0 WIFI",
+        "interval": 3,
+        "format": "{}",
+        "tooltip": false
+    },
+
+    // Ethernet — same fixed-width approach
+    "custom/net-eth": {
+        "exec": "$HOME/.local/bin/waybar-net enp0s31f6 ETH",
+        "interval": 3,
+        "format": "{}",
+        "tooltip": false
+    },
+
+    // VOL — left-click opens pavucontrol slider, right-click toggles mute
+    "pulseaudio": {
+        "format": "<span foreground='#a07848'> {volume}%</span>",
+        "format-muted": "",
+        "on-click": "pavucontrol",
+        "on-click-right": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle",
+        "on-scroll-up": "wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+",
+        "on-scroll-down": "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-",
+        "tooltip-format": "{desc}\nVolume: {volume}%"
+    },
+
+    "tray": {
+        "spacing": 8,
+        "icon-size": 16
+    },
+
+    // Weather — wttrbar fetches from wttr.in every 30 min, emoji icons via Noto Color Emoji
+    "custom/weather": {
+        "format": "{}",
+        "tooltip": true,
+        "interval": 1800,
+        "exec": "$HOME/.local/bin/waybar-weather",
+        "return-type": "json"
+    },
+
+}

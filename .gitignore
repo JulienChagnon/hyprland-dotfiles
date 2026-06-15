@@ -1,0 +1,12 @@
+# Backups / editor junk
+*.bak
+*.bak.*
+*~
+.backup-*
+
+# Waybar runtime state (regenerated at runtime)
+waybar/.active_theme
+waybar/.net_shown
+
+# OS noise
+.DS_Store

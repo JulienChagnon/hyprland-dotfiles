@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+# Wallpaper picker — lists ~/Pictures/wallpapers/, shows in wofi, applies via hyprpaper
+
+WALLPAPER_DIR="$HOME/Pictures/wallpapers"
+VENDOR_LIB="/usr/libexec/hyprland/vendor/lib64"
+
+# Collect image files
+mapfile -t files < <(find "$WALLPAPER_DIR" -maxdepth 1 -type f \( \
+    -iname "*.png" -o -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.webp" \
+\) | sort)
+
+if [ ${#files[@]} -eq 0 ]; then
+    notify-send "Wallpaper Picker" "No images found in $WALLPAPER_DIR" 2>/dev/null || true
+    exit 1
+fi
+
+# Build display list (filenames only) and a lookup map
+declare -A name_to_path
+display_list=""
+for f in "${files[@]}"; do
+    name=$(basename "$f")
+    name_to_path["$name"]="$f"
+    display_list+="$name\n"
+done
+
+# Wofi doesn't always get focus when spawned via Hyprland exec — focus it after it opens
+(sleep 0.3 && hyprctl dispatch focuswindow class:wofi 2>/dev/null) &
+
+# Show wofi picker
+chosen=$(printf "%b" "$display_list" | wofi --dmenu \
+    --prompt "  Wallpaper" \
+    --width 560 \
+    --height 460 \
+    --cache-file /dev/null \
+    --style "$HOME/.config/wofi/style-wallpaper.css")
+
+[ -z "$chosen" ] && exit 0
+
+chosen_path="${name_to_path[$chosen]}"
+[ -z "$chosen_path" ] && exit 1
+
+# Ensure hyprpaper is running
+if ! pgrep -x hyprpaper > /dev/null; then
+    LD_LIBRARY_PATH="$VENDOR_LIB" hyprpaper &
+    sleep 1
+fi
+
+# Find the hyprpaper socket
+HYPR_SOCK_DIR="/run/user/$(id -u)/hypr/${HYPRLAND_INSTANCE_SIGNATURE}"
+HYPRPAPER_SOCK="$HYPR_SOCK_DIR/.hyprpaper.sock"
+
+if [ ! -S "$HYPRPAPER_SOCK" ]; then
+    notify-send "Wallpaper Picker" "hyprpaper socket not found" 2>/dev/null || true
+    exit 1
+fi
+
+# Send IPC command to hyprpaper socket
+hyprpaper_ipc() {
+    python3 -c "
+import socket, sys
+sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+sock.connect('$HYPRPAPER_SOCK')
+sock.send(sys.argv[1].encode())
+print(sock.recv(1024).decode())
+sock.close()
+" "$1"
+}
+
+hyprpaper_ipc "preload $chosen_path"
+
+# Apply to all monitors
+while IFS= read -r monitor; do
+    hyprpaper_ipc "wallpaper $monitor,$chosen_path"
+done < <(hyprctl monitors -j | jq -r '.[].name')
+
+# Persist to hyprpaper.conf so it survives restarts
+conf="$HOME/.config/hypr/hyprpaper.conf"
+{
+    echo "# hyprpaper configuration"
+    echo "# Docs: https://github.com/hyprwm/hyprpaper"
+    echo ""
+    echo "preload = $chosen_path"
+    echo ""
+    echo "wallpaper = ,$chosen_path"
+    echo ""
+    echo "splash = false"
+} > "$conf"
+
+# Sync hyprlock.conf so the lockscreen background always matches the wallpaper
+hyprlock_conf="$HOME/.config/hypr/hyprlock.conf"
+if [ -f "$hyprlock_conf" ]; then
+    sed -i "s|^\s*path = .*|    path = $chosen_path|" "$hyprlock_conf"
+fi

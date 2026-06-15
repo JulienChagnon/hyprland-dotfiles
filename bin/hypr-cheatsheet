@@ -1,0 +1,13 @@
+#!/bin/bash
+# Hyprland keybindings cheatsheet — rendered from markdown via glow.
+# Edit ~/.config/hypr/cheatsheet.md to update.
+
+SHEET="$HOME/.config/hypr/cheatsheet.md"
+
+if command -v glow >/dev/null 2>&1; then
+    glow -s dark -w 100 "$SHEET"
+else
+    cat "$SHEET"
+fi
+
+sleep infinity

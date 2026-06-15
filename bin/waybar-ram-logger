@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Logs RAM usage % every 30 s; keeps 60 entries (30 min of history).
+LOG="$HOME/.local/share/waybar/ram_history.log"
+mkdir -p "$(dirname "$LOG")"
+while true; do
+    total=$(awk '/MemTotal/    {print $2}' /proc/meminfo)
+    avail=$(awk '/MemAvailable/{print $2}' /proc/meminfo)
+    used=$(( (total - avail) * 100 / total ))
+    echo "$(date +%s) $used" >> "$LOG"
+    tail -60 "$LOG" > "$LOG.tmp" && mv "$LOG.tmp" "$LOG"
+    sleep 30
+done

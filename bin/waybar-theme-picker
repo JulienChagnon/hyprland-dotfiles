@@ -1,0 +1,100 @@
+#!/usr/bin/env bash
+# Waybar theme picker — select from available waybar themes (network/clock toggles moved to SUPER+I)
+# State: ~/.config/waybar/.net_shown (exists = network visible)
+# State: ~/.config/waybar/.clock_hidden (exists = clock hidden)
+
+THEMES_DIR="$HOME/.config/waybar/themes"
+STYLE="$HOME/.config/waybar/style.css"
+CONFIG="$HOME/.config/waybar/config.jsonc"
+NET_STATE="$HOME/.config/waybar/.net_shown"
+CLOCK_STATE="$HOME/.config/waybar/.clock_hidden"
+
+# Apply network visibility to a jsonc file (edits in place)
+apply_net_state() {
+    local file="$1"
+    local with_net='"modules-right": ["custom/weather", "cpu", "memory", "pulseaudio", "tray", "custom/sep", "custom/net-wifi", "custom/net-eth"]'
+    local without_net='"modules-right": ["custom/weather", "cpu", "memory", "pulseaudio", "tray"]'
+    if [ -f "$NET_STATE" ]; then
+        python3 -c "
+import re
+content = open('$file').read()
+content = re.sub(r'\"modules-right\":\s*\[[^\]]*\]', '$with_net', content)
+open('$file', 'w').write(content)
+"
+    else
+        python3 -c "
+import re
+content = open('$file').read()
+content = re.sub(r'\"modules-right\":\s*\[[^\]]*\]', '$without_net', content)
+open('$file', 'w').write(content)
+"
+    fi
+}
+
+# Apply clock visibility to a jsonc file (edits in place)
+apply_clock_state() {
+    local file="$1"
+    local with_clock='"modules-center": ["clock"]'
+    local without_clock='"modules-center": []'
+    if [ -f "$CLOCK_STATE" ]; then
+        python3 -c "
+import re
+content = open('$file').read()
+content = re.sub(r'\"modules-center\":\s*\[[^\]]*\]', '$without_clock', content)
+open('$file', 'w').write(content)
+"
+    else
+        python3 -c "
+import re
+content = open('$file').read()
+content = re.sub(r'\"modules-center\":\s*\[[^\]]*\]', '$with_clock', content)
+open('$file', 'w').write(content)
+"
+    fi
+}
+
+mapfile -t files < <(find "$THEMES_DIR" -maxdepth 1 -name "*.css" | sort)
+
+if [ ${#files[@]} -eq 0 ]; then
+    notify-send "Waybar Themes" "No themes found in $THEMES_DIR" 2>/dev/null || true
+    exit 1
+fi
+
+declare -A name_to_path
+display_list=""
+for f in "${files[@]}"; do
+    name=$(basename "$f" .css)
+    name_to_path["$name"]="$f"
+    display_list+="$name\n"
+done
+
+(sleep 0.3 && hyprctl dispatch focuswindow class:wofi 2>/dev/null) &
+
+chosen=$(printf "%b" "$display_list" | wofi --dmenu \
+    --prompt "  Waybar Theme" \
+    --width 400 \
+    --height 280 \
+    --cache-file /dev/null \
+    --style "$HOME/.config/wofi/style-waybar-theme.css")
+
+[ -z "$chosen" ] && exit 0
+
+chosen_css="${name_to_path[$chosen]}"
+[ -z "$chosen_css" ] && exit 1
+
+cp "$chosen_css" "$STYLE"
+
+chosen_jsonc="$THEMES_DIR/$chosen.jsonc"
+if [ -f "$chosen_jsonc" ]; then
+    cp "$chosen_jsonc" "$CONFIG"
+    apply_net_state "$CONFIG"
+    apply_clock_state "$CONFIG"
+fi
+
+echo "$chosen" > "$HOME/.config/waybar/.active_theme"
+~/.local/bin/hypr-border-sync
+
+pkill -x waybar
+sleep 0.3
+waybar &
+disown

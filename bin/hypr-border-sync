@@ -1,0 +1,101 @@
+#!/usr/bin/env bash
+# hypr-border-sync — sets col.active_border and syncs wofi accent colours to the active waybar theme.
+# Called by waybar-theme-picker on theme switch and exec-once on login.
+
+STATE="$HOME/.config/waybar/.active_theme"
+theme=$(cat "$STATE" 2>/dev/null)
+
+# Fall back to detecting theme from style.css first line if no state file.
+if [ -z "$theme" ]; then
+    first=$(head -1 "$HOME/.config/waybar/style.css" 2>/dev/null | tr '[:upper:]' '[:lower:]')
+    if   echo "$first" | grep -q "green";         then theme="GREEN"
+    elif echo "$first" | grep -q "copper";        then theme="COPPER"
+    elif echo "$first" | grep -q "darkred";       then theme="DARKRED"
+    elif echo "$first" | grep -q "grey";          then theme="GREY"
+    elif echo "$first" | grep -q "beige";         then theme="BEIGE"
+    elif echo "$first" | grep -q "brown.*green\|brown & green"; then theme="BROWN & GREEN"
+    elif echo "$first" | grep -q "trd\|minimal\|mocha"; then theme="TRD"
+    else theme="BLUE"
+    fi
+fi
+
+case "$theme" in
+    GREEN)           border='rgba(a8d870ee) rgba(6ab868ee) 45deg'  ; accent="168, 216, 112" ;;  # soft lime → sage
+    TRD)             border='rgba(1e40afee) rgba(3b82f6ee) 45deg'  ; accent="59, 130, 246"  ;;  # deep navy → mid blue
+    COPPER)          border='rgba(e0b07aee) rgba(b07030ee) 45deg'  ; accent="224, 176, 122" ;;  # light brass → medium copper
+    DARKRED)         border='rgba(b84040ee) rgba(601010ee) 45deg'  ; accent="184, 64, 64"   ;;  # crimson → dark blood
+    GREY)            border='rgba(dcdce8ee) rgba(a8a8b8ee) 45deg'  ; accent="122, 122, 132" ;;  # off-white → light grey
+    BEIGE)           border='rgba(a49268ee) rgba(4a3820ee) 45deg'  ; accent="164, 146, 104" ;;  # pale sand → dark brown
+    "BROWN & GREEN") border='rgba(508838ee) rgba(1a2e14ee) 45deg'  ; accent="80, 136, 56"   ;;  # olive → deep forest
+    *)               border='rgba(33ccffee) rgba(00ff99ee) 45deg'  ; accent="51, 204, 255"  ;;  # BLUE default
+esac
+
+hyprctl keyword general:col.active_border "$border"
+
+# Write themed wofi CSS for both pickers (background matches hypr-app-launcher GTK window)
+write_wofi_css() {
+    local file="$1"
+    local label="$2"
+    cat > "$file" << EOF
+/* $label — accent synced to active waybar theme via hypr-border-sync */
+* {
+    font-family: "Noto Sans Mono", "Font Awesome 6 Free", monospace;
+    font-size: 13px;
+}
+
+window {
+    background-color: rgba(28, 28, 32, 0.96);
+    border: 1px solid rgba(${accent}, 0.40);
+    border-radius: 12px;
+    color: #e0e0e0;
+}
+
+#outer-box {
+    padding: 8px;
+}
+
+#input {
+    background-color: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(${accent}, 0.45);
+    border-radius: 7px;
+    color: #e0e0e0;
+    padding: 6px 12px;
+    margin-bottom: 6px;
+}
+
+#input:focus {
+    border-color: rgba(${accent}, 0.80);
+}
+
+#scroll {
+    margin: 0;
+}
+
+#entry {
+    padding: 4px 12px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+}
+
+#entry:hover {
+    background-color: rgba(${accent}, 0.12);
+}
+
+#entry:selected {
+    background-color: rgba(${accent}, 0.22);
+    border-color: rgba(${accent}, 0.50);
+}
+
+#text {
+    color: #e0e0e0;
+}
+
+#text:selected {
+    color: #ffffff;
+}
+EOF
+}
+
+write_wofi_css "$HOME/.config/wofi/style-wallpaper.css"    "Wallpaper picker"
+write_wofi_css "$HOME/.config/wofi/style-settings.css"      "Settings picker"
+write_wofi_css "$HOME/.config/wofi/style-waybar-theme.css" "Waybar theme picker"

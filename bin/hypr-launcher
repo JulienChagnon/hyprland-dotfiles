@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+# SUPER+SPACE — curated quick-launcher. Edit ~/.config/hypr/launch-apps.conf to customise.
+
+CONFIG="$HOME/.config/hypr/launch-apps.conf"
+
+declare -A CMD_MAP
+declare -A INSTALLED_MAP
+
+# Install hints for common apps (shown via notify-send when not installed)
+declare -A INSTALL_HINTS=(
+    [google-chrome-stable]="sudo dnf install google-chrome-stable  (add Google repo first)"
+    [code]="sudo dnf install code  (add Microsoft VSCode repo first)"
+    [spotify]="flatpak install flathub com.spotify.Client"
+    [obsidian]="flatpak install flathub md.obsidian.Obsidian"
+    [discord]="flatpak install flathub com.discordapp.Discord"
+)
+
+display_list=""
+while IFS= read -r line; do
+    # Skip comments and blank lines
+    [[ "$line" =~ ^[[:space:]]*# ]] && continue
+    [[ -z "${line// }" ]] && continue
+
+    name=$(echo "$line" | cut -d'|' -f1 | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+    cmd=$(echo "$line"  | cut -d'|' -f2 | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+    binary=$(echo "$cmd" | awk '{print $1}')
+
+    CMD_MAP["$name"]="$cmd"
+
+    if command -v "$binary" &>/dev/null; then
+        INSTALLED_MAP["$name"]="yes"
+        display_list+="$name\n"
+    else
+        INSTALLED_MAP["$name"]="no"
+        display_list+="$name  (not installed)\n"
+    fi
+done < "$CONFIG"
+
+(sleep 0.25 && hyprctl dispatch focuswindow class:wofi 2>/dev/null) &
+
+chosen=$(printf "%b" "$display_list" | wofi --dmenu \
+    --prompt "  Launch" \
+    --width 480 \
+    --height 380 \
+    --cache-file /dev/null \
+    --style "$HOME/.config/wofi/style-launcher.css")
+
+[[ -z "$chosen" ]] && exit 0
+
+# Strip the "(not installed)" suffix to get the real name
+clean_name=$(echo "$chosen" | sed 's/[[:space:]]*([^)]*)[[:space:]]*$//')
+
+cmd="${CMD_MAP[$clean_name]}"
+installed="${INSTALLED_MAP[$clean_name]}"
+binary=$(echo "$cmd" | awk '{print $1}')
+
+if [[ "$installed" == "yes" ]]; then
+    $cmd &
+else
+    hint="${INSTALL_HINTS[$binary]:-check your package manager}"
+    notify-send "Not installed: $clean_name" "Install with:\n$hint" \
+        --expire-time=6000 2>/dev/null || true
+fi
