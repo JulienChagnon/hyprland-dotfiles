@@ -9,7 +9,7 @@
     "modules-left": ["hyprland/workspaces"],
     "modules-center": ["clock"],
     // custom/sep is the fixed vertical bar between stats and network
-    "modules-right": ["custom/weather", "cpu", "memory", "pulseaudio", "tray"],
+    "modules-right": ["custom/weather", "cpu", "memory", "pulseaudio", "tray", "custom/sep", "custom/net-wifi", "custom/net-eth"],
 
     // Workspace buttons — persistent 1-15; empty desktops hidden via CSS so only open ones show
     "hyprland/workspaces": {
@@ -31,7 +31,7 @@
 
     // CPU — click opens btop in a floating terminal
     "cpu": {
-        "format": "CPU <span foreground='#1d6b1d'>{usage:>3}%</span>",
+        "format": "CPU <span foreground='#BA9C40'>{usage:>3}%</span>",
         "interval": 2,
         "tooltip": false,
         "on-click": "kitty --class waybar-chart -e btop",
@@ -43,7 +43,7 @@
 
     // RAM — click shows 30-min history chart
     "memory": {
-        "format": "RAM <span foreground='#1d6b1d'>{used:.1f}GB</span>",
+        "format": "RAM <span foreground='#B46D45'>{used:.1f}GB</span>",
         "interval": 5,
         "tooltip-format": "Used: {used:.1f}G / {total:.1f}G\nAvailable: {avail:.1f}G",
         "on-click": "kitty --class waybar-chart -e $HOME/.local/bin/waybar-ram-chart"
@@ -73,9 +73,9 @@
     },
 
     // VOL — left-click opens pavucontrol slider, right-click toggles mute
-    // OLD: "format": "VOL {volume}%\", "format-muted": "MUTE"
+    // OLD: "format": "VOL <span foreground='#A64850'>{volume}%</span>\", "format-muted": "MUTE"
     "pulseaudio": {
-        "format": " <span foreground='#1d6b1d'>{volume}%</span>",
+        "format": " <span foreground='#A64850'>{volume}%</span>",
         "format-muted": "",
         "on-click": "pavucontrol",
         "on-click-right": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle",

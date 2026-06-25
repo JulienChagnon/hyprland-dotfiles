@@ -1,4 +1,4 @@
-/* Waybar terminal-green theme — phosphor CRT edition */
+/* Waybar dark minimal theme — Catppuccin Mocha palette */
 
 * {
     font-family: "Noto Sans Mono", monospace;
@@ -10,6 +10,7 @@
     margin: 0;
 }
 
+/* Main bar */
 window#waybar {
     background-color: rgba(28, 28, 32, 0.97);
     border-bottom: 2px solid #2a2a30;
@@ -22,7 +23,7 @@ window#waybar {
     margin: 0 4px;
 }
 
-/* ─── Workspace buttons — dark→light green gradient, phosphor glow ───────── */
+/* ─── Workspace buttons ──────────────────────────────────────────────────── */
 #workspaces button {
     padding: 1px 10px;
     background: transparent;
@@ -32,6 +33,7 @@ window#waybar {
     border-bottom: 2px solid transparent;
     margin: 3px 1px;
     font-weight: bold;
+    text-shadow: none;
     box-shadow: none;
     outline: none;
     transition: background 0.22s ease-in-out,
@@ -67,16 +69,16 @@ window#waybar {
 }
 
 /* Desktop number colours (gradient by workspace id) — NO underline unless active */
-#workspaces button:nth-child(1)   { color: #8ab478; text-shadow: 0 0 5px rgba(138,180,120,0.14), 0 0 2px rgba(138,180,120,0.22); }
-#workspaces button:nth-child(2)   { color: #8ab478; text-shadow: 0 0 5px rgba(138,180,120,0.14), 0 0 2px rgba(138,180,120,0.22); }
-#workspaces button:nth-child(3)   { color: #8ab478; text-shadow: 0 0 5px rgba(138,180,120,0.14), 0 0 2px rgba(138,180,120,0.22); }
-#workspaces button:nth-child(4)   { color: #8ab478; text-shadow: 0 0 5px rgba(138,180,120,0.14), 0 0 2px rgba(138,180,120,0.22); }
-#workspaces button:nth-child(5)   { color: #8ab478; text-shadow: 0 0 5px rgba(138,180,120,0.14), 0 0 2px rgba(138,180,120,0.22); }
-#workspaces button:nth-child(6)   { color: #8ab478; text-shadow: 0 0 5px rgba(138,180,120,0.14), 0 0 2px rgba(138,180,120,0.22); }
-#workspaces button:nth-child(7)   { color: #8ab478; text-shadow: 0 0 5px rgba(138,180,120,0.14), 0 0 2px rgba(138,180,120,0.22); }
-#workspaces button:nth-child(8)   { color: #8ab478; text-shadow: 0 0 5px rgba(138,180,120,0.14), 0 0 2px rgba(138,180,120,0.22); }
-#workspaces button:nth-child(9)   { color: #8ab478; text-shadow: 0 0 5px rgba(138,180,120,0.14), 0 0 2px rgba(138,180,120,0.22); }
-#workspaces button:nth-child(10)  { color: #8ab478; text-shadow: 0 0 5px rgba(138,180,120,0.14), 0 0 2px rgba(138,180,120,0.22); }
+#workspaces button:nth-child(1)   { color: #1e3a8a; }
+#workspaces button:nth-child(2)   { color: #4338ca; }
+#workspaces button:nth-child(3)   { color: #6d28d9; }
+#workspaces button:nth-child(4)   { color: #9333ea; }
+#workspaces button:nth-child(5)   { color: #c026d3; }
+#workspaces button:nth-child(6)   { color: #ec4899; }
+#workspaces button:nth-child(7)   { color: #f472b6; }
+#workspaces button:nth-child(8)   { color: #f9a8d4; }
+#workspaces button:nth-child(9)   { color: #f1c8c0; }
+#workspaces button:nth-child(10)  { color: #e8dcc8; }
 
 #workspaces button.active {
     background-image: none;
@@ -84,49 +86,79 @@ window#waybar {
 }
 
 /* Underline ONLY on the active desktop, coloured to match its number */
-#workspaces button:nth-child(1).active { border-bottom-color: #8ab478; }
-#workspaces button:nth-child(2).active { border-bottom-color: #8ab478; }
-#workspaces button:nth-child(3).active { border-bottom-color: #8ab478; }
-#workspaces button:nth-child(4).active { border-bottom-color: #8ab478; }
-#workspaces button:nth-child(5).active { border-bottom-color: #8ab478; }
-#workspaces button:nth-child(6).active { border-bottom-color: #8ab478; }
-#workspaces button:nth-child(7).active { border-bottom-color: #8ab478; }
-#workspaces button:nth-child(8).active { border-bottom-color: #8ab478; }
-#workspaces button:nth-child(9).active { border-bottom-color: #8ab478; }
-#workspaces button:nth-child(10).active { border-bottom-color: #8ab478; }
+#workspaces button:nth-child(1).active { border-bottom-color: #1e3a8a; }
+#workspaces button:nth-child(2).active { border-bottom-color: #4338ca; }
+#workspaces button:nth-child(3).active { border-bottom-color: #6d28d9; }
+#workspaces button:nth-child(4).active { border-bottom-color: #9333ea; }
+#workspaces button:nth-child(5).active { border-bottom-color: #c026d3; }
+#workspaces button:nth-child(6).active { border-bottom-color: #ec4899; }
+#workspaces button:nth-child(7).active { border-bottom-color: #f472b6; }
+#workspaces button:nth-child(8).active { border-bottom-color: #f9a8d4; }
+#workspaces button:nth-child(9).active { border-bottom-color: #f1c8c0; }
+#workspaces button:nth-child(10).active { border-bottom-color: #e8dcc8; }
 /* Overflow 11-15: reveal number + underline in desktop-10 colour only when active */
 #workspaces button:nth-child(11).active,
 #workspaces button:nth-child(12).active,
 #workspaces button:nth-child(13).active,
 #workspaces button:nth-child(14).active,
-#workspaces button:nth-child(15).active { color: #8ab478; border-bottom-color: #8ab478; }
+#workspaces button:nth-child(15).active { color: #e8dcc8; border-bottom-color: #e8dcc8; }
 
 #workspaces button:hover {
-    background: rgba(0, 255, 65, 0.07);
+    background: rgba(232, 220, 200, 0.09);
     background-image: none;
     box-shadow: none;
     border-image: none;
+    text-shadow: none;
     outline: none;
 }
 
-#workspaces button:nth-child(1):hover  { background: rgba(0,255,65,0.07); color: #8ab478; }
-#workspaces button:nth-child(2):hover  { background: rgba(0,255,65,0.07); color: #8ab478; }
-#workspaces button:nth-child(3):hover  { background: rgba(0,255,65,0.07); color: #8ab478; }
-#workspaces button:nth-child(4):hover  { background: rgba(0,255,65,0.07); color: #8ab478; }
-#workspaces button:nth-child(5):hover  { background: rgba(0,255,65,0.07); color: #8ab478; }
-#workspaces button:nth-child(6):hover  { background: rgba(0,255,65,0.07); color: #8ab478; }
-#workspaces button:nth-child(8):hover  { background: rgba(0,255,65,0.07); color: #8ab478; }
-#workspaces button:nth-child(9):hover  { background: rgba(0,255,65,0.07); color: #8ab478; }
-#workspaces button:nth-child(10):hover { background: rgba(0,255,65,0.07); color: #8ab478; }
+#workspaces button:nth-child(1):hover { background: rgba(232, 220, 200, 0.10); }
+#workspaces button:nth-child(2):hover { background: rgba(232, 220, 200, 0.10); }
+#workspaces button:nth-child(3):hover { background: rgba(232, 220, 200, 0.10); }
+#workspaces button:nth-child(4):hover { background: rgba(232, 220, 200, 0.10); }
+#workspaces button:nth-child(5):hover { background: rgba(232, 220, 200, 0.10); }
+#workspaces button:nth-child(6):hover { background: rgba(232, 220, 200, 0.10); }
+#workspaces button:nth-child(7):hover { background: rgba(232, 220, 200, 0.10); }
+#workspaces button:nth-child(8):hover { background: rgba(232, 220, 200, 0.10); }
+#workspaces button:nth-child(9):hover { background: rgba(232, 220, 200, 0.10); }
+#workspaces button:nth-child(10):hover { background: rgba(232, 220, 200, 0.10); }
 
-/* ─── Clock — stays beige, no glow ──────────────────────────────────────── */
+/* ─── Clock ──────────────────────────────────────────────────────────────── */
 #clock {
     color: #e8dcc8;
     font-weight: bold;
     padding: 0 12px;
 }
 
-/* ─── Stat button boxes — greyer-green digits + phosphor glow ────────────── */
+/* ─── Stat button boxes (CPU / RAM / VOL) ────────────────────────────────── */
+/* OLD beige-box style — kept commented in case the new rail style needs reverting
+#cpu,
+#memory,
+#pulseaudio {
+    background-color: rgba(14, 14, 20, 0.88);
+    border: 1px solid rgba(232, 220, 200, 0.30);
+    border-radius: 6px;
+    padding: 2px 10px;
+    margin: 4px 2px;
+    font-weight: bold;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+#cpu:hover,
+#memory:hover,
+#pulseaudio:hover {
+    background-color: rgba(28, 28, 42, 0.95);
+    border-color: rgba(232, 220, 200, 0.60);
+}
+
+#cpu:active,
+#memory:active,
+#pulseaudio:active {
+    background-color: rgba(8, 8, 14, 0.95);
+}
+*/
+
+/* NEW: workspace-style top + bottom coloured rails (no surrounding box) */
 #cpu,
 #memory,
 #pulseaudio {
@@ -144,38 +176,37 @@ window#waybar {
 #cpu:hover,
 #memory:hover,
 #pulseaudio:hover {
-    background: rgba(0, 255, 65, 0.07);
+    background: rgba(232, 220, 200, 0.09);
 }
 
-/* Greyer green = desaturated, mid-brightness; glow matches the muted tone */
+/* ─── CPU colours ────────────────────────────────────────────────────────── */
 #cpu {
-    color: #6eb06e;
-    border-top-color: #6eb06e;
-    border-bottom-color: #6eb06e;
-    text-shadow: 0 0 9px rgba(110,176,110,0.22), 0 0 2px rgba(110,176,110,0.38);
+    color: #F5B800;
+    border-top-color: #F5B800;
+    border-bottom-color: #F5B800;
 }
 
-#cpu.warning { color: #a8c8a8; text-shadow: 0 0 9px rgba(168,200,168,0.18), 0 0 2px rgba(168,200,168,0.32); }
-#cpu.critical { color: #c8d8c8; text-shadow: 0 0 9px rgba(200,216,200,0.15), 0 0 2px rgba(200,216,200,0.28); }
+#cpu.warning { color: #f9e2af; }
+#cpu.critical { color: #f38ba8; }
 
+/* ─── RAM colour ─────────────────────────────────────────────────────────── */
 #memory {
-    color: #5ea05e;
-    border-top-color: #5ea05e;
-    border-bottom-color: #5ea05e;
-    text-shadow: 0 0 9px rgba(94,160,94,0.22), 0 0 2px rgba(94,160,94,0.38);
+    color: #E85A0A;
+    border-top-color: #E85A0A;
+    border-bottom-color: #E85A0A;
 }
 
+/* ─── VOL colour ─────────────────────────────────────────────────────────── */
 #pulseaudio {
-    color: #4e904e;
-    border-top-color: #4e904e;
-    border-bottom-color: #4e904e;
-    text-shadow: 0 0 9px rgba(78,144,78,0.22), 0 0 2px rgba(78,144,78,0.38);
+    color: #CC1020;
+    border-top-color: #CC1020;
+    border-bottom-color: #CC1020;
+    /* Keep Noto Sans Mono for the digits; FA only fills in the icon glyph it doesn't have */
     font-family: "Noto Sans Mono", "Font Awesome 6 Free", monospace;
 }
 
 #pulseaudio.muted {
-    color: #3a5a3a;
-    text-shadow: none;
+    color: #585b70;
 }
 
 /* ─── Fixed separator bar ────────────────────────────────────────────────── */
@@ -185,7 +216,7 @@ window#waybar {
     font-size: 18px;
 }
 
-/* ─── Network ─────────────────────────────────────────────────────────────── */
+/* ─── Network — fixed-width exec output keeps positions stable ───────────── */
 #custom-net-wifi,
 #custom-net-eth {
     color: #e8dcc8;
@@ -211,41 +242,27 @@ tooltip {
     color: #cdd6f4;
 }
 
-/* ─── Weather — greyer green, phosphor glow ──────────────────────────────── */
+/* ─── Weather ────────────────────────────────────────────────────────────── */
 #custom-weather {
     background: transparent;
-    border-top: 1px solid #5ea05e;
-    border-bottom: 1px solid #5ea05e;
+    border-top: 1px solid #7a9ec8;
+    border-bottom: 1px solid #7a9ec8;
     border-radius: 6px;
     padding: 2px 10px;
     margin: 3px 2px;
     font-weight: bold;
-    color: #5ea05e;
+    color: #7a9ec8;
     font-family: "Noto Sans Mono", "Noto Color Emoji", monospace;
-    text-shadow: 0 0 9px rgba(94,160,94,0.22), 0 0 2px rgba(94,160,94,0.38);
     transition: background 0.22s ease-in-out;
 }
 
 #custom-weather:hover {
-    background: rgba(0, 255, 65, 0.07);
+    background: rgba(116, 199, 236, 0.09);
 }
 
+/* Condition tints — waybar sets the class from wttrbar's "class" field */
 #custom-weather.rain,
 #custom-weather.snow,
-#custom-weather.storm {
-    color: #6eb06e;
-    border-top-color: #6eb06e;
-    border-bottom-color: #6eb06e;
-    text-shadow: 0 0 9px rgba(110,176,110,0.22), 0 0 2px rgba(110,176,110,0.38);
-}
-#custom-weather.cloudy {
-    color: #5ea05e;
-    border-top-color: #5ea05e;
-    border-bottom-color: #5ea05e;
-}
-#custom-weather.fog {
-    color: #4e904e;
-    border-top-color: #4e904e;
-    border-bottom-color: #4e904e;
-    text-shadow: 0 0 9px rgba(78,144,78,0.22), 0 0 2px rgba(78,144,78,0.38);
-}
+#custom-weather.storm { color: #89b4fa; border-top-color: #89b4fa; border-bottom-color: #89b4fa; }
+#custom-weather.cloudy  { color: #a6adc8; border-top-color: #a6adc8; border-bottom-color: #a6adc8; }
+#custom-weather.fog     { color: #9399b2; border-top-color: #9399b2; border-bottom-color: #9399b2; }

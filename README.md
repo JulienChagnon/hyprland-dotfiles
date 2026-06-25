@@ -84,7 +84,7 @@ under `~/.config` to `~/.config/.dotfiles-backup-<timestamp>/` before copying. I
 | `wofi/` | Stylesheets for the launcher/picker menus |
 | `fastfetch/` | Compact system-info layout |
 | `bin/` | 19 helper scripts the keybinds/modules depend on |
-| `wallpapers/` | The two bundled wallpapers |
+| `wallpapers/` | The three bundled wallpapers |
 | `install.sh` | Deploys everything to the right locations |
 
 ---
@@ -137,11 +137,12 @@ field with check/fail colour states. See `hypr/hyprlock.conf`.
 
 ## Wallpapers
 
-Two are bundled in `wallpapers/` and installed to `~/Pictures/wallpapers/`:
+Three are bundled in `wallpapers/` and installed to `~/Pictures/wallpapers/`:
 
 | File | Used as |
 |------|---------|
-| `enchanted-forest.jpg` | Default (Hyprpaper + Hyprlock) |
+| `wallhaven.png` | Default (Hyprpaper + Hyprlock) |
+| `enchanted-forest.jpg` | Alternate |
 | `shark.png` | Alternate |
 
 Switch live with `SUPER + W`, or drop your own into `~/Pictures/wallpapers/`.

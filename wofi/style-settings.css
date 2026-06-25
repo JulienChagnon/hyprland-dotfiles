@@ -6,7 +6,7 @@
 
 window {
     background-color: rgba(28, 28, 32, 0.96);
-    border: 1px solid rgba(168, 216, 112, 0.40);
+    border: 1px solid rgba(59, 130, 246, 0.40);
     border-radius: 12px;
     color: #e0e0e0;
 }
@@ -17,7 +17,7 @@ window {
 
 #input {
     background-color: rgba(255, 255, 255, 0.07);
-    border: 1px solid rgba(168, 216, 112, 0.45);
+    border: 1px solid rgba(59, 130, 246, 0.45);
     border-radius: 7px;
     color: #e0e0e0;
     padding: 6px 12px;
@@ -25,7 +25,7 @@ window {
 }
 
 #input:focus {
-    border-color: rgba(168, 216, 112, 0.80);
+    border-color: rgba(59, 130, 246, 0.80);
 }
 
 #scroll {
@@ -39,12 +39,12 @@ window {
 }
 
 #entry:hover {
-    background-color: rgba(168, 216, 112, 0.12);
+    background-color: rgba(59, 130, 246, 0.12);
 }
 
 #entry:selected {
-    background-color: rgba(168, 216, 112, 0.22);
-    border-color: rgba(168, 216, 112, 0.50);
+    background-color: rgba(59, 130, 246, 0.22);
+    border-color: rgba(59, 130, 246, 0.50);
 }
 
 #text {
