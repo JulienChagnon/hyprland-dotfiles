@@ -36,18 +36,23 @@ Install the dependencies, run `./install.sh`, log into Hyprland.
 ```bash
 sudo dnf install hyprland hyprlock hypridle hyprpaper waybar kitty wofi mako \
   grim slurp wl-clipboard jq pavucontrol wireplumber playerctl btop fastfetch \
-  google-noto-sans-mono-fonts google-noto-emoji-color-fonts
+  google-noto-sans-mono-fonts google-noto-emoji-color-fonts fontawesome-6-free-fonts
 ```
 **Arch:**
 ```bash
 sudo pacman -S hyprland hyprlock hypridle hyprpaper waybar kitty wofi mako \
   grim slurp wl-clipboard jq pavucontrol wireplumber playerctl btop fastfetch \
-  noto-fonts noto-fonts-emoji
+  noto-fonts noto-fonts-emoji ttf-font-awesome ttf-nerd-fonts-symbols-mono
 ```
 
 Two tools aren't in the base repos — install them separately:
 - **`satty`** (screenshot annotator, bound to `Print`) — `cargo install satty` or your distro's COPR/AUR
 - **`wttrbar`** (weather module backend) — `cargo install wttrbar`
+
+The MINIMUM bar style also needs **Symbols Nerd Font Mono**. Arch gets it from
+`ttf-nerd-fonts-symbols-mono` above. On Fedora, download `NerdFontsSymbolsOnly.tar.xz`
+from the [Nerd Fonts releases](https://github.com/ryanoasis/nerd-fonts/releases),
+extract it into `~/.local/share/fonts/NerdFontsSymbolsOnly/` and run `fc-cache -f`.
 
 ### 2. Clone and install
 
@@ -79,20 +84,21 @@ under `~/.config` to `~/.config/.dotfiles-backup-<timestamp>/` before copying. I
 | Path | Component |
 |------|-----------|
 | `hypr/` | Hyprland, Hyprlock, Hypridle, Hyprpaper configs + keybind cheatsheet |
-| `waybar/` | Bar config, active stylesheet, and 8 theme pairs in `themes/` |
+| `waybar/` | Bar config, active stylesheet, 8 colour theme pairs in `themes/`, accent `palettes/`, and bar `styles/` |
 | `kitty/` | Terminal config + theme |
 | `wofi/` | Stylesheets for the launcher/picker menus |
 | `fastfetch/` | Compact system-info layout |
-| `bin/` | 19 helper scripts the keybinds/modules depend on |
-| `wallpapers/` | The three bundled wallpapers |
+| `bin/` | 23 helper scripts the keybinds/modules depend on |
+| `wallpapers/` | The bundled wallpapers |
 | `install.sh` | Deploys everything to the right locations |
 
 ---
 
 ## Hyprland
 
-Tiling `dwindle` layout, `SUPER` mod key, 10px rounding, gradient borders,
-blur + shadows, and custom bézier animations.
+Tiling `dwindle` layout, `SUPER` mod key, 10px rounding, solid borders tinted to
+the Waybar colour, blur + shadows, and custom bézier animations. The session locks
+with Hyprlock right after login (meant for display-manager autologin).
 
 | Binding | Action |
 |---------|--------|
@@ -103,13 +109,16 @@ blur + shadows, and custom bézier animations.
 | `SUPER + X` | Close window · `SUPER + F` float · `SUPER + J` toggle split |
 | `SUPER + Arrows` | Move focus |
 | `SUPER + 1…0` | Switch workspace · `SUPER + SHIFT + 1…0` move window |
-| `SUPER + S` | Toggle special "magic" workspace |
+| `SUPER + N` | Toggle special "magic" workspace · `SUPER + SHIFT + N` send window there |
+| `SUPER + S` | System menu: NetworkManager profiles, Waybar net speeds, restart Waybar, auto sleep, snapper snapshots |
+| `SUPER + I` | Settings (gaps, border, cursor, clock and network display) |
 | `SUPER + L` | Lock (Hyprlock) · `SUPER + M` power menu |
-| `SUPER + W` | Wallpaper picker · `SUPER + O` Waybar theme picker |
+| `SUPER + W` | Wallpaper picker · `SUPER + O` Waybar colour and style picker |
 | `SUPER + H` | Keybinding cheatsheet (close with `SUPER + X`) |
 | `Print` | Region screenshot → annotate (`grim` + `slurp` + `satty`) |
 
-Idle behaviour (`hypr/hypridle.conf`): lock at 14 min, suspend at 15 min.
+Idle behaviour (`hypr/hypridle.conf`): lock at 14 min, suspend at 15 min. "Auto
+sleep: OFF" in the SUPER + S menu holds a systemd sleep inhibitor that skips both.
 
 ---
 
@@ -118,13 +127,20 @@ Idle behaviour (`hypr/hypridle.conf`): lock at 14 min, suspend at 15 min.
 ![Waybar](assets/waybar.png)
 
 A 36px top bar: workspaces (empty ones hidden) · centered clock · weather, CPU,
-RAM, volume, tray, and fixed-width Wi-Fi/Ethernet counters. Click CPU for `btop`,
-RAM for a 30-min usage chart, volume for `pavucontrol`.
+RAM, volume, tray, and Wi-Fi/Ethernet download rates. Every module has a fixed
+width, so changing numbers never shift the icons. Click CPU for `btop`, RAM for a
+30-min usage chart, volume for `pavucontrol`.
 
-**8 themes** — `BEIGE, BLUE, BROWN & GREEN, COPPER, DARKRED, GREEN, GREY, TRD`.
-Press `SUPER + O` to switch: the picker copies the chosen `themes/<NAME>.{css,jsonc}`
-over the live `style.css`/`config.jsonc`, reloads the bar, and re-tints the window
-borders to match.
+`SUPER + O` picks two things independently:
+
+- **Colour**: `BEIGE, BLUE, BROWN & GREEN, COPPER, DARKRED, GREEN, GREY, TRD`. Also
+  re-tints the window borders and menus to match.
+- **Style**: `PERSONAL` (each colour's own `themes/<NAME>.{css,jsonc}`) or `MINIMUM`
+  (single-colour Nerd Font icons tinted with the chosen colour, white values, pill
+  workspace buttons, and only the network links that are up).
+
+The live `style.css`/`config.jsonc` are generated by the picker, so edit the sources
+instead. `waybar/styles/README.md` has the rules for adding more styles.
 
 ---
 
@@ -137,11 +153,11 @@ field with check/fail colour states. See `hypr/hyprlock.conf`.
 
 ## Wallpapers
 
-Three are bundled in `wallpapers/` and installed to `~/Pictures/wallpapers/`:
+Bundled in `wallpapers/` and installed to `~/Pictures/wallpapers/`:
 
 | File | Used as |
 |------|---------|
-| `wallhaven.png` | Default (Hyprpaper + Hyprlock) |
+| `Think.png` | Default (Hyprpaper + Hyprlock) |
 | `enchanted-forest.jpg` | Alternate |
 | `shark.png` | Alternate |
 

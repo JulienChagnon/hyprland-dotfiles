@@ -1,17 +1,24 @@
-// Waybar configuration for Hyprland
-// Docs: https://github.com/Alexays/Waybar/wiki/Configuration
+// Waybar config: "MINIMUM" style (SUPER+O > Style). Colour-agnostic on purpose.
+// Icons from newemperor221/hyprland-dotfiles "hypr_style1", values in white.
+// Icon colour is NOT set here: it comes from CSS `color: @accent`, so the same file
+// works for every SUPER+O colour. Read ../README.md before editing.
+//
+// Glyphs are written as \uXXXX escapes (JSON decodes them exactly like the literal
+// character) so they stay visible and editable. Icons use "Symbols Nerd Font Mono":
+// every glyph is exactly one cell wide, so switching vol-low/vol-high/muted icons
+// cannot change the module width (proportional variant: 8/10/15 px).
 {
     "layer": "top",
     "position": "top",
     "height": 36,
-    "spacing": 6,
+    "spacing": 2,   // was 6: gap between modules (with 4px CSS padding each side)
 
     "modules-left": ["hyprland/workspaces"],
     "modules-center": ["clock"],
-    // custom/sep is the fixed vertical bar between stats and network
+    // Same module ids as PERSONAL so SUPER+I network/clock toggles keep working
     "modules-right": ["custom/weather", "cpu", "memory", "pulseaudio", "tray", "custom/sep", "custom/net-wifi", "custom/net-eth"],
 
-    // Workspace buttons — persistent 1-15; empty desktops hidden via CSS so only open ones show
+    // Numbers like PERSONAL (his were app icons); look of the buttons comes from style.css
     "hyprland/workspaces": {
         "format": "{id}",
         "on-click": "activate",
@@ -22,16 +29,20 @@
         }
     },
 
-    // Clock — hover for calendar tooltip
+    // Clock: identical in every style (rule 3 in ../README.md)
     "clock": {
         "format": "{:%a %d %b  %I:%M %p}",
         "tooltip-format": "<big>{:%B %Y}</big>\n<tt><small>{calendar}</small></tt>",
         "format-alt": "{:%I:%M %p}"
     },
 
-    // CPU — click opens btop in a floating terminal
+    //  = nf-fae-chip. {usage:<3} = left-aligned in 3 chars: fixed width, and the
+    // padding goes AFTER the number so the icon sits one space from it
     "cpu": {
-        "format": "CPU <span foreground='#BA9C40'>{usage:>3}%</span>",
+        "format": "<span font_family='Symbols Nerd Font Mono'></span> <span foreground='#ffffff'>{usage}%</span>",
+        // Width lock (rule 5): at least 7 chars (8 px each), text left-aligned, so the
+        // icon never moves and the spare space sits after the number
+        "min-length": 7, "align": 0,
         "interval": 2,
         "tooltip": false,
         "on-click": "kitty --class waybar-chart -e btop",
@@ -41,42 +52,51 @@
         }
     },
 
-    // RAM — click shows 30-min history chart
+    //  = memory chip. {used:<4.1f} = "9.9 " / "15.2", always 4 chars, padding after
     "memory": {
-        "format": "RAM <span foreground='#B46D45'>{used:.1f}GB</span>",
+        "format": "<span font_family='Symbols Nerd Font Mono'></span> <span foreground='#ffffff'>{used:.1f}GB</span>",
+        "min-length": 9, "align": 0,
         "interval": 5,
         "tooltip-format": "Used: {used:.1f}G / {total:.1f}G\nAvailable: {avail:.1f}G",
         "on-click": "kitty --class waybar-chart -e $HOME/.local/bin/waybar-ram-chart"
     },
 
-    // Fixed vertical separator — keeps network from shifting stat modules
     "custom/sep": {
         "format": "│",
         "interval": "once",
         "tooltip": false
     },
 
-    // WiFi — custom exec always outputs fixed-width Mb/s, preventing layout shifts
+    // 3rd arg MINIMUM: white fixed-width rate, and NO output while the link is down.
+    // Waybar hides a custom module whose text is empty, so only live links show.
+    // The wifi/ethernet glyphs are the same Font Awesome ones as PERSONAL (all styles).
     "custom/net-wifi": {
-        "exec": "$HOME/.local/bin/waybar-net wlan0 WIFI",
+        "exec": "$HOME/.local/bin/waybar-net wlan0 WIFI MINIMUM",
+        "min-length": 9, "align": 0,
         "interval": 3,
         "format": "{}",
         "tooltip": false
     },
 
-    // Ethernet — same fixed-width approach
     "custom/net-eth": {
-        "exec": "$HOME/.local/bin/waybar-net enp0s31f6 ETH",
+        "exec": "$HOME/.local/bin/waybar-net enp0s31f6 ETH MINIMUM",
+        "min-length": 9, "align": 0,
         "interval": 3,
         "format": "{}",
         "tooltip": false
     },
 
-    // VOL — left-click opens pavucontrol slider, right-click toggles mute
-    // OLD: "format": "VOL <span foreground='#A64850'>{volume}%</span>\", "format-muted": "MUTE"
+    // Icons: Material Design volume low/medium/high (U+F057F/F0580/F057E) and off
+    // (U+F0581), as surrogate pairs. All four draw the speaker at the same spot, so
+    // only the waves change (the FA f026/f027/f028 set shifts the speaker sideways).
+    // Muted keeps the number so the layout is identical when you mute.
     "pulseaudio": {
-        "format": " <span foreground='#A64850'>{volume}%</span>",
-        "format-muted": "",
+        "format": "<span font_family='Symbols Nerd Font Mono'>{icon}</span> <span foreground='#ffffff'>{volume}%</span>",
+        "format-muted": "<span font_family='Symbols Nerd Font Mono'>󰖁</span> <span foreground='#ffffff'>{volume}%</span>",
+        "format-icons": {
+            "default": ["󰕿", "󰖀", "󰕾"]
+        },
+        "min-length": 7, "align": 0,
         "on-click": "pavucontrol",
         "on-click-right": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle",
         "on-scroll-up": "wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+",
@@ -89,13 +109,13 @@
         "icon-size": 16
     },
 
-    // Weather — wttrbar fetches from wttr.in every 30 min, emoji icons via Noto Color Emoji
+    // --style MINIMUM: Nerd Font weather glyph instead of the colour emoji, white temp
     "custom/weather": {
         "format": "{}",
         "tooltip": true,
+        "min-length": 7, "align": 0,
         "interval": 1800,
-        "exec": "$HOME/.local/bin/waybar-weather",
+        "exec": "$HOME/.local/bin/waybar-weather --style MINIMUM",
         "return-type": "json"
-    },
-
+    }
 }

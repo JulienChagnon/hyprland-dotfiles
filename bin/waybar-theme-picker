@@ -1,97 +1,150 @@
 #!/usr/bin/env bash
-# Waybar theme picker — select from available waybar themes (network/clock toggles moved to SUPER+I)
-# State: ~/.config/waybar/.net_shown (exists = network visible)
-# State: ~/.config/waybar/.clock_hidden (exists = clock hidden)
+# waybar-theme-picker (SUPER+O): choose a waybar COLOUR and a waybar STYLE independently.
+# Network/clock toggles live in SUPER+I (hypr-settings-picker).
+#
+#   Colour = palette: themes/<COLOUR>.css + themes/<COLOUR>.jsonc + palettes/<COLOUR>.css
+#   Style  = layout/icon look: "PERSONAL" (built in) or any folder in styles/ (UPPERCASE names)
+#
+#   PERSONAL       -> style.css = themes/C.css,  config.jsonc = themes/C.jsonc   (as before)
+#   styles/<S>/    -> style.css = themes/C.css + palettes/C.css + styles/S/style.css
+#                     config.jsonc = styles/S/config.jsonc
+#
+# Rules every style must follow (weather/cpu/ram/vol/net kept, clock untouched, etc.):
+# see ~/.config/waybar/styles/README.md
+#
+# State: .active_theme (colour name, also read by hypr-border-sync)
+#        .active_style (style name, missing = PERSONAL)
+#        .net_shown / .clock_hidden (owned by SUPER+I, re-applied here)
 
-THEMES_DIR="$HOME/.config/waybar/themes"
-STYLE="$HOME/.config/waybar/style.css"
-CONFIG="$HOME/.config/waybar/config.jsonc"
-NET_STATE="$HOME/.config/waybar/.net_shown"
-CLOCK_STATE="$HOME/.config/waybar/.clock_hidden"
+WAYBAR="$HOME/.config/waybar"
+THEMES_DIR="$WAYBAR/themes"
+STYLES_DIR="$WAYBAR/styles"
+PALETTES_DIR="$WAYBAR/palettes"
+STYLE="$WAYBAR/style.css"
+CONFIG="$WAYBAR/config.jsonc"
+COLOUR_STATE="$WAYBAR/.active_theme"
+STYLE_STATE="$WAYBAR/.active_style"
+NET_STATE="$WAYBAR/.net_shown"
+CLOCK_STATE="$WAYBAR/.clock_hidden"
 
-# Apply network visibility to a jsonc file (edits in place)
+# Rewrite modules-right in the generated config.jsonc according to the SUPER+I network
+# toggle. Values passed via argv/env, not spliced into the Python source, so names with
+# quotes or spaces can't break it.
 apply_net_state() {
-    local file="$1"
     local with_net='"modules-right": ["custom/weather", "cpu", "memory", "pulseaudio", "tray", "custom/sep", "custom/net-wifi", "custom/net-eth"]'
     local without_net='"modules-right": ["custom/weather", "cpu", "memory", "pulseaudio", "tray"]'
-    if [ -f "$NET_STATE" ]; then
-        python3 -c "
-import re
-content = open('$file').read()
-content = re.sub(r'\"modules-right\":\s*\[[^\]]*\]', '$with_net', content)
-open('$file', 'w').write(content)
-"
-    else
-        python3 -c "
-import re
-content = open('$file').read()
-content = re.sub(r'\"modules-right\":\s*\[[^\]]*\]', '$without_net', content)
-open('$file', 'w').write(content)
-"
-    fi
+    local want="$without_net"
+    [ -f "$NET_STATE" ] && want="$with_net"
+    WANT="$want" python3 -c '
+import os, re, sys
+p = sys.argv[1]
+s = open(p).read()
+s = re.sub(r"\"modules-right\":\s*\[[^\]]*\]", lambda m: os.environ["WANT"], s)
+open(p, "w").write(s)
+' "$1"
 }
 
-# Apply clock visibility to a jsonc file (edits in place)
 apply_clock_state() {
-    local file="$1"
-    local with_clock='"modules-center": ["clock"]'
-    local without_clock='"modules-center": []'
-    if [ -f "$CLOCK_STATE" ]; then
-        python3 -c "
-import re
-content = open('$file').read()
-content = re.sub(r'\"modules-center\":\s*\[[^\]]*\]', '$without_clock', content)
-open('$file', 'w').write(content)
-"
-    else
-        python3 -c "
-import re
-content = open('$file').read()
-content = re.sub(r'\"modules-center\":\s*\[[^\]]*\]', '$with_clock', content)
-open('$file', 'w').write(content)
-"
-    fi
+    local want='"modules-center": ["clock"]'
+    [ -f "$CLOCK_STATE" ] && want='"modules-center": []'
+    WANT="$want" python3 -c '
+import os, re, sys
+p = sys.argv[1]
+s = open(p).read()
+s = re.sub(r"\"modules-center\":\s*\[[^\]]*\]", lambda m: os.environ["WANT"], s)
+open(p, "w").write(s)
+' "$1"
 }
 
-mapfile -t files < <(find "$THEMES_DIR" -maxdepth 1 -name "*.css" | sort)
+# Build style.css + config.jsonc from (colour, style). Only the two generated files are
+# written; the sources in themes/ styles/ palettes/ are never modified.
+build() {
+    local colour="$1" style="$2"
+    local c_css="$THEMES_DIR/$colour.css" c_json="$THEMES_DIR/$colour.jsonc"
 
-if [ ${#files[@]} -eq 0 ]; then
-    notify-send "Waybar Themes" "No themes found in $THEMES_DIR" 2>/dev/null || true
+    if [ "$style" = "PERSONAL" ]; then
+        cp "$c_css" "$STYLE"
+        [ -f "$c_json" ] && cp "$c_json" "$CONFIG"
+    else
+        local s_dir="$STYLES_DIR/$style" pal="$PALETTES_DIR/$colour.css"
+        {
+            cat "$c_css"
+            printf '\n/* ═══ palette: %s ═══ */\n' "$colour"
+            if [ -f "$pal" ]; then cat "$pal"
+            else echo '@define-color accent #ffffff;  /* no palettes/'"$colour"'.css yet */'
+            fi
+            printf '\n/* ═══ style layer: %s ═══ */\n' "$style"
+            cat "$s_dir/style.css"
+        } > "$STYLE.tmp" && mv "$STYLE.tmp" "$STYLE"
+        cp "$s_dir/config.jsonc" "$CONFIG"
+    fi
+
+    apply_net_state "$CONFIG"
+    apply_clock_state "$CONFIG"
+}
+
+# ── Collect choices ──────────────────────────────────────────────────────────
+mapfile -t colours < <(find "$THEMES_DIR" -maxdepth 1 -name "*.css" -printf '%f\n' | sed 's/\.css$//' | sort)
+styles=("PERSONAL")
+while IFS= read -r d; do
+    # a style folder only counts if it has both files
+    [ -f "$STYLES_DIR/$d/style.css" ] && [ -f "$STYLES_DIR/$d/config.jsonc" ] && styles+=("$d")
+done < <(find "$STYLES_DIR" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' 2>/dev/null | sort)
+
+if [ ${#colours[@]} -eq 0 ]; then
+    notify-send "Waybar Themes" "No colours found in $THEMES_DIR" 2>/dev/null || true
     exit 1
 fi
 
-declare -A name_to_path
-display_list=""
-for f in "${files[@]}"; do
-    name=$(basename "$f" .css)
-    name_to_path["$name"]="$f"
-    display_list+="$name\n"
+cur_colour=$(cat "$COLOUR_STATE" 2>/dev/null)
+cur_style=$(cat "$STYLE_STATE" 2>/dev/null)
+[ -z "$cur_colour" ] && cur_colour="${colours[0]}"
+# State written before the rename said "Personal"/"minimum": upper-case it to match.
+cur_style="${cur_style^^}"
+[ -z "$cur_style" ] || [ "$cur_style" != "PERSONAL" -a ! -d "$STYLES_DIR/$cur_style" ] && cur_style="PERSONAL"
+
+dot() { [[ "$1" == "$2" ]] && printf "  ●"; }
+
+# Divider rows. wofi has no "non-selectable row" option, so a divider that gets
+# picked (Enter or click) is ignored and the menu simply reopens. Dividers always
+# contain "──", which no colour or style name may contain.
+DIV_COLOUR="──── Colour ──────────────"
+DIV_STYLE="──── Style ───────────────"
+
+display_list="$DIV_COLOUR"
+for c in "${colours[@]}"; do display_list+="\n$c$(dot "$c" "$cur_colour")"; done
+display_list+="\n$DIV_STYLE"
+for s in "${styles[@]}"; do display_list+="\n$s$(dot "$s" "$cur_style")"; done
+
+while :; do
+    (sleep 0.3 && hyprctl dispatch focuswindow class:wofi 2>/dev/null) &
+
+    chosen=$(printf "%b" "$display_list" | wofi --dmenu \
+        --prompt "  Waybar Colour / Style" \
+        --width 400 \
+        --height 460 \
+        --cache-file /dev/null \
+        --style "$HOME/.config/wofi/style-waybar-theme.css")
+
+    [ -z "$chosen" ] && exit 0          # Esc / closed: do nothing
+    [[ "$chosen" == *"──"* ]] || break  # real entry: leave the loop
 done
+chosen="${chosen%  ●}"
 
-(sleep 0.3 && hyprctl dispatch focuswindow class:wofi 2>/dev/null) &
-
-chosen=$(printf "%b" "$display_list" | wofi --dmenu \
-    --prompt "  Waybar Theme" \
-    --width 400 \
-    --height 280 \
-    --cache-file /dev/null \
-    --style "$HOME/.config/wofi/style-waybar-theme.css")
-
-[ -z "$chosen" ] && exit 0
-
-chosen_css="${name_to_path[$chosen]}"
-[ -z "$chosen_css" ] && exit 1
-
-cp "$chosen_css" "$STYLE"
-
-chosen_jsonc="$THEMES_DIR/$chosen.jsonc"
-if [ -f "$chosen_jsonc" ]; then
-    cp "$chosen_jsonc" "$CONFIG"
-    apply_net_state "$CONFIG"
-    apply_clock_state "$CONFIG"
+# A name is a colour if themes/<name>.css exists, else a style. (So a style folder must
+# never share a colour's name: rule 6 in styles/README.md.)
+if [ -f "$THEMES_DIR/$chosen.css" ]; then
+    cur_colour="$chosen"
+elif [ "$chosen" = "PERSONAL" ] || [ -d "$STYLES_DIR/$chosen" ]; then
+    cur_style="$chosen"
+else
+    exit 1
 fi
 
-echo "$chosen" > "$HOME/.config/waybar/.active_theme"
+build "$cur_colour" "$cur_style" || exit 1
+
+echo "$cur_colour" > "$COLOUR_STATE"
+echo "$cur_style"  > "$STYLE_STATE"
 ~/.local/bin/hypr-border-sync
 
 pkill -x waybar

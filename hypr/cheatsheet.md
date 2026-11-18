@@ -34,13 +34,15 @@
 | Keys                       | Action                       |
 |----------------------------|------------------------------|
 | `SUPER` + `,` / `.`        | Cycle workspaces             |
-| `SUPER` + `S`              | Toggle scratchpad            |
-| `SUPER` + `SHIFT` + `S`    | Send to scratchpad           |
+| `SUPER` + `N`              | Toggle scratchpad            |
+| `SUPER` + `SHIFT` + `N`    | Send to scratchpad           |
 
 ## System
 
 | Keys                   | Action                       |
 |------------------------|------------------------------|
+| `SUPER` + `S`          | System menu: network · speeds · auto sleep · snapshots |
+| `SUPER` + `I`          | Settings (gaps/border/cursor) |
 | `SUPER` + `H`          | Show this cheatsheet         |
 | `SUPER` + `SHIFT` + `R`| Reload Hyprland config       |
 | `XF86AudioRaise/Lower` | Volume up / down             |

@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# idle-lock: called by hypridle's lock listener (~/.config/hypr/hypridle.conf).
+# Locks with hyprlock, unless the SUPER+S "Stay awake" inhibitor is running,
+# in which case idle locking is skipped too (not just suspend).
+# Manual locks and the lock before a real suspend (before_sleep_cmd) are unaffected.
+
+AWAKE_PID="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/stay-awake.pid"
+
+pid=$(cat "$AWAKE_PID" 2>/dev/null)
+# Check the PID really is our systemd-inhibit, so a stale file (reused PID) can't disable locking
+if [ -n "$pid" ] && [ "$(cat /proc/"$pid"/comm 2>/dev/null)" = "systemd-inhibit" ]; then
+    exit 0
+fi
+
+# pidof guard: don't stack a second hyprlock on top of one already showing
+pidof hyprlock >/dev/null || exec hyprlock

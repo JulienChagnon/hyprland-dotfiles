@@ -1,4 +1,5 @@
 /* Waybar COPPER theme — dark mahogany → pale brass, warm amber glow */
+@import url("outline.css");   /* shared module outline shape (colour-agnostic) */
 /* Inspired by classic motorsport metallics: engine copper, brass fittings,
    tooled leather — timeless like TRD but deeper and more brooding.        */
 

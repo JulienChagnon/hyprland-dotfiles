@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# waybar-restart: kill waybar and start a fresh, fully detached instance.
+#
+# Used by SUPER+S ("Restart waybar") and by hypridle's after_sleep_cmd.
+# A fresh instance re-reads the monitor list, which fixes the bar being drawn
+# at stale coordinates (off-screen) after a resume reshuffles the outputs.
+#
+# Usage: waybar-restart [delay-seconds]
+#   delay lets outputs settle first (hypridle passes one after resume).
+
+delay="${1:-0}"
+[ "$delay" != 0 ] && sleep "$delay"
+
+# Serialise: two callers at once (e.g. menu + resume hook) must not both spawn a bar.
+exec 9>"${XDG_RUNTIME_DIR:-/tmp}/waybar-restart.lock"
+flock -n 9 || exit 0
+
+pkill -x waybar
+
+# Wait (max ~2 s) for the old instance to actually exit, so the new one doesn't
+# race it for the tray D-Bus name and the layer surfaces.
+for _ in $(seq 20); do
+    pgrep -x waybar >/dev/null || break
+    sleep 0.1
+done
+pgrep -x waybar >/dev/null && pkill -KILL -x waybar
+
+# setsid -f: new session, forked, so it survives this script / the menu / hypridle.
+# 9>&- : don't let waybar inherit the lock fd (it would hold the lock forever).
+setsid -f waybar >/dev/null 2>&1 9>&-

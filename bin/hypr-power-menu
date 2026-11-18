@@ -17,6 +17,8 @@ CSS = b"""
 #pwbtn {
     background: rgba(255,255,255,0.07);
     -gtk-icon-effect: none;
+    text-shadow: none;
+    -gtk-icon-shadow: none;
     border: none;
     border-radius: 12px;
     margin: 0;
@@ -32,6 +34,8 @@ CSS = b"""
 #pwbtn:hover {
     background: rgba(255,255,255,0.18);
     -gtk-icon-effect: none;
+    text-shadow: none;
+    -gtk-icon-shadow: none;
     border: none;
     margin: 0;
     padding: 12px 16px;
@@ -135,6 +139,7 @@ class PowerMenu(Gtk.Window):
 
             idx = i
             btn.connect("focus-in-event", lambda _w, _e, n=idx: self._sync_focus(n))
+            btn.connect("enter-notify-event", lambda w, _e: w.grab_focus() or False)
 
             box.pack_start(btn, False, False, 0)
             self.buttons.append(btn)
@@ -143,7 +148,9 @@ class PowerMenu(Gtk.Window):
         self.connect("key-press-event", self.on_key)
         self.connect("destroy", Gtk.main_quit)
         self.show_all()
-        self.buttons[0].grab_focus()
+        # no initial grab_focus: avoids the first icon flashing selected
+        # before the pointer reaches its target. self.focused still starts
+        # at 0 so number keys / Enter / arrows work immediately.
 
     def on_draw(self, widget, cr):
         w = widget.get_allocated_width()

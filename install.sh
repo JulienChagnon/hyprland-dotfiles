@@ -42,5 +42,6 @@ Runtime dependencies (install with your package manager):
   hyprland waybar hyprlock hypridle hyprpaper kitty wofi mako
   grim slurp satty wl-clipboard jq pavucontrol pipewire(wpctl)
   playerctl btop fastfetch wttrbar
-  fonts: Noto Sans Mono, Noto Color Emoji
+  fonts: Noto Sans Mono, Noto Color Emoji, Font Awesome 6 Free,
+         Symbols Nerd Font Mono (MINIMUM bar style)
 NOTE

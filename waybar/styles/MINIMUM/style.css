@@ -1,0 +1,105 @@
+/* ══ STYLE LAYER: MINIMUM ═══════════════════════════════════════════════════════
+ * Icon look of newemperor221/hyprland-dotfiles "hypr_style1", adapted:
+ *   - icons tinted with @accent (from palettes/<COLOUR>.css), values white (set in
+ *     config.jsonc with <span foreground='#ffffff'>), no rails/ticks/glow;
+ *   - workspaces: grey numbers, filled @accent pill on the active one (his look);
+ *   - bar background, clock, tray, tooltips: untouched, inherited from the colour CSS.
+ *
+ * This file is NOT a full stylesheet. waybar-theme-picker builds style.css as:
+ *   themes/<COLOUR>.css  +  palettes/<COLOUR>.css  +  this file
+ * so every rule here is an override. Selectors are prefixed with window#waybar
+ * (2 ids) so they outrank the colour CSS (1 id + classes/pseudo-classes) no matter
+ * what the colour theme wrote. Never style #clock here (rule 3, styles/README.md).
+ */
+
+/* ─── Stat modules: icon = @accent, no outline ──────────────────────────────── */
+window#waybar #custom-weather,
+window#waybar #cpu,
+window#waybar #memory,
+window#waybar #pulseaudio,
+window#waybar #custom-net-wifi,
+window#waybar #custom-net-eth {
+    color: @accent;
+    text-shadow: none;
+    border-top-color: transparent;
+    border-bottom-color: transparent;
+    background-color: transparent;
+    background-image: none;          /* kills outline.css side ticks */
+    border-radius: 8px;
+    padding: 2px 4px;                /* was 2px 8px: tighter gap between modules */
+    margin: 3px 0;                   /* was 3px 1px */
+    font-weight: bold;
+}
+
+/* Same colour whatever the module state (warning/critical/weather class) */
+window#waybar #cpu.warning,
+window#waybar #cpu.critical,
+window#waybar #custom-weather.rain,
+window#waybar #custom-weather.snow,
+window#waybar #custom-weather.storm,
+window#waybar #custom-weather.cloudy,
+window#waybar #custom-weather.fog {
+    color: @accent;
+    text-shadow: none;
+    border-top-color: transparent;
+    border-bottom-color: transparent;
+}
+
+window#waybar #pulseaudio.muted {
+    color: alpha(@accent, 0.45);
+}
+
+/* Hover: soft accent tint (his "brighten on hover"), still no outline */
+window#waybar #custom-weather:hover,
+window#waybar #cpu:hover,
+window#waybar #memory:hover,
+window#waybar #pulseaudio:hover {
+    background-color: alpha(@accent, 0.12);
+    background-image: none;
+}
+
+/* Network: same Font Awesome icons as PERSONAL (from waybar-net), tinted @accent.
+ * The old negative margin glued WIFI/ETH together; give each its own room */
+window#waybar #custom-net-wifi,
+window#waybar #custom-net-eth {
+    margin-left: 0;
+}
+
+/* ─── Workspaces: grey numbers, accent pill on the active one ──────────────── */
+window#waybar #workspaces button {
+    color: #888888;
+    text-shadow: none;
+    background-color: transparent;
+    background-image: none;
+    border-bottom: none;
+    border-radius: 10px;
+    padding: 1px 9px;
+    margin: 4px 2px;
+}
+
+window#waybar #workspaces button:hover {
+    background-color: alpha(@accent, 0.20);
+    color: #ffffff;
+}
+
+window#waybar #workspaces button.active,
+window#waybar #workspaces button.active:hover {
+    background-color: @accent;
+    color: #ffffff;
+}
+
+/* Re-assert the "only open desktops show" rules from the colour CSS. The block above
+ * (2 ids) would otherwise beat them (1 id) and resurrect empty/overflow buttons. */
+window#waybar #workspaces button.empty:not(.active),
+window#waybar #workspaces button:nth-child(11):not(.active),
+window#waybar #workspaces button:nth-child(12):not(.active),
+window#waybar #workspaces button:nth-child(13):not(.active),
+window#waybar #workspaces button:nth-child(14):not(.active),
+window#waybar #workspaces button:nth-child(15):not(.active) {
+    color: transparent;
+    background-color: transparent;
+    padding: 0;
+    margin: 0;
+    min-width: 0;
+    font-size: 0px;
+}

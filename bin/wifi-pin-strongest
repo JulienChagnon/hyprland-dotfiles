@@ -1,0 +1,98 @@
+#!/usr/bin/env bash
+# wifi-pin-strongest: scan for the home mesh and pin the "Home WiFi" profile to
+# whichever node (BSSID) is strongest right now, then reconnect to it.
+#
+# Why pin at all: the AR9271 dongle handles mesh band-steering badly (it keeps
+# dropping when the mesh steers it), so the machine is locked to one node. The pin goes stale when
+# nodes move or change, which is what this script fixes in one step.
+#
+# Usage: wifi-pin-strongest [--dry-run]
+#   --dry-run   scan and report, change nothing
+# Called from the SUPER+S menu (hypr-system-menu); results arrive as notifications.
+
+set -uo pipefail
+
+PROFILE="Home WiFi"
+IFACE="wlan0"
+DRY_RUN=0
+[[ "${1:-}" == "--dry-run" ]] && DRY_RUN=1
+
+notify() {  # $1 = urgency, $2 = title, $3 = body; also echo for terminal use
+    notify-send -u "$1" -a network "$2" "$3" 2>/dev/null
+    printf '%s\n%s\n' "$2" "$3"
+}
+
+# 1. The dongle must actually be present (it has vanished before: "Target is unresponsive").
+if [[ ! -e /sys/class/net/$IFACE ]]; then
+    notify critical "WiFi pin: no $IFACE" "USB WiFi dongle not detected. Replug it (port 1-7 works best)."
+    exit 1
+fi
+
+# 2. Pin only nodes of the SSID this profile is for, read from the profile itself.
+SSID=$(nmcli -g 802-11-wireless.ssid connection show "$PROFILE" 2>/dev/null)
+if [[ -z "$SSID" ]]; then
+    notify critical "WiFi pin: profile missing" "No NetworkManager profile named '$PROFILE'."
+    exit 1
+fi
+CURRENT=$(nmcli -g 802-11-wireless.bssid connection show "$PROFILE" | tr -d '\\' | tr '[:lower:]' '[:upper:]')
+
+# 3. Fresh scan. "--rescan yes" makes nmcli wait for a new scan instead of
+#    returning cached results that may predate a node being moved or unplugged.
+#    A scan sees every AP in range even while the profile is pinned.
+#    -t (terse) prints colon-separated fields and escapes colons inside values as "\:",
+#    so BSSIDs come out as 68\:FF\:7B\:... ; awk swaps "\:" out before splitting.
+scan=$(nmcli -t -f SIGNAL,BSSID,SSID device wifi list ifname "$IFACE" --rescan yes 2>&1) || {
+    notify critical "WiFi pin: scan failed" "$scan"
+    exit 1
+}
+
+# Output lines: "SIGNAL BSSID" for our SSID only, strongest first.
+nodes=$(awk -v ssid="$SSID" '{
+    gsub(/\\:/, "\x01")                 # protect escaped colons
+    n = split($0, f, ":")
+    if (n < 3) next
+    s = f[3]; for (i = 4; i <= n; i++) s = s ":" f[i]   # rejoin SSID if it had colons
+    gsub("\x01", ":", s)
+    b = f[2]; gsub("\x01", ":", b)
+    if (s == ssid) print f[1], toupper(b)
+}' <<<"$scan" | sort -k1,1nr)
+
+if [[ -z "$nodes" ]]; then
+    notify critical "WiFi pin: '$SSID' not found" "No nodes of '$SSID' in range. Pin left at ${CURRENT:-none}."
+    exit 1
+fi
+
+read -r best_sig best_bssid <<<"$(head -n1 <<<"$nodes")"
+report=$(awk -v cur="$CURRENT" '{ printf "%s %3s%%  %s\n", ($2 == cur ? "●" : " "), $1, $2 }' <<<"$nodes")
+
+# 4. Already on the best node: nothing to do, and no reason to bounce the link.
+#    On a tie the current pin wins (a switch would gain nothing), hence the -ge check.
+cur_sig=$(awk -v cur="$CURRENT" '$2 == cur { print $1 }' <<<"$nodes")
+if [[ "$best_bssid" == "$CURRENT" || ( -n "$cur_sig" && "$cur_sig" -ge "$best_sig" ) ]]; then
+    notify normal "WiFi: already on strongest node" "$report"
+    exit 0
+fi
+
+if (( DRY_RUN )); then
+    notify normal "WiFi pin (dry run): would pin $best_bssid" "$report"
+    exit 0
+fi
+
+# 5. Save the new pin, then re-activate so it takes effect now.
+#    "modify" only rewrites the stored profile; "connection up" applies it (a ~2-5 s WiFi
+#    blip). Ethernet, if plugged in, carries traffic meanwhile.
+if ! out=$(nmcli connection modify "$PROFILE" 802-11-wireless.bssid "$best_bssid" 2>&1); then
+    notify critical "WiFi pin: modify failed" "$out"
+    exit 1
+fi
+
+notify normal "WiFi: pinning $best_bssid ($best_sig%)" "Was ${CURRENT:-unpinned}. Reconnecting…"$'\n'"$report"
+if out=$(nmcli connection up "$PROFILE" 2>&1); then
+    notify normal "WiFi: connected to $best_bssid" "$(ip -br addr show "$IFACE")"
+else
+    # New pin failed to connect: put the old one back so we don't leave a worse state.
+    nmcli connection modify "$PROFILE" 802-11-wireless.bssid "${CURRENT}" >/dev/null 2>&1
+    nmcli connection up "$PROFILE" >/dev/null 2>&1 &
+    notify critical "WiFi: connect to $best_bssid failed" "Restored pin ${CURRENT:-none}."$'\n'"$out"
+    exit 1
+fi

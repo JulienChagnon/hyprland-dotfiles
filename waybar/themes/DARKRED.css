@@ -1,4 +1,5 @@
 /* Waybar DARKRED theme — near-black → crimson, warm glow */
+@import url("outline.css");   /* shared module outline shape (colour-agnostic) */
 
 * {
     font-family: "Noto Sans Mono", monospace;

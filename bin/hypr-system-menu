@@ -1,0 +1,199 @@
+#!/usr/bin/env bash
+# hypr-system-menu — SUPER+S: network profiles, waybar net-speed toggle, auto-sleep toggle, btrfs snapshots.
+# Styled with ~/.config/wofi/style-settings.css, which hypr-border-sync regenerates
+# from the active waybar theme, so this menu always matches the bar.
+
+STYLE="$HOME/.config/wofi/style-settings.css"
+CONFIG="$HOME/.config/waybar/config.jsonc"
+NET_STATE="$HOME/.config/waybar/.net_shown"   # shared with hypr-settings-picker / theme picker
+
+ICON_ETH=$''     # Font Awesome 6: ethernet
+ICON_WIFI=$''    # wifi
+ICON_LAB=$''     # server
+ICON_GEAR=$''    # gear
+ICON_GAUGE=$''   # gauge-high
+ICON_CAM=$''     # camera
+ICON_LIST=$''    # list
+ICON_SIGNAL=$''  # signal bars
+ICON_RELOAD=$''  # Font Awesome 6: rotate-right
+
+# NetworkManager profile names (`nmcli connection show`), edit to match yours.
+# name | icon | description  (two profiles on the same NIC: activating one replaces the other)
+PROFILES=(
+    "Home Ethernet|$ICON_ETH|router · internet"
+    "Home WiFi|$ICON_WIFI|USB dongle · internet"
+    "HPE Lab|$ICON_LAB|lab switch · offline"
+)
+
+# Auto-sleep toggle. hypridle suspends after 15 min idle (~/.config/hypr/hypridle.conf).
+# "Stay awake" holds a systemd sleep inhibitor (block mode), so hypridle's
+# `systemctl suspend` is refused, and ~/.local/bin/idle-lock sees it and skips
+# the 14 min idle lock too. The inhibitor
+# lives until toggled back or logout/reboot. PID kept in the runtime dir.
+AWAKE_PID="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/stay-awake.pid"
+ICON_POWER=$''   # Font Awesome 6: power-off
+
+awake_pid() {  # succeeds (and prints the PID) if our inhibitor is running
+    local pid
+    pid=$(cat "$AWAKE_PID" 2>/dev/null) || return 1
+    [ -n "$pid" ] && [ "$(cat /proc/"$pid"/comm 2>/dev/null)" = "systemd-inhibit" ] && echo "$pid"
+}
+
+wofi_menu() {  # $1 = prompt, $2 = height; stdin = entries
+    (sleep 0.3 && hyprctl dispatch focuswindow class:wofi >/dev/null 2>&1) &
+    wofi --dmenu --prompt "$1" --width 460 --height "$2" \
+         --cache-file /dev/null --style "$STYLE"
+}
+
+# ── Build menu ────────────────────────────────────────────────────────────────
+active=$(nmcli -g NAME connection show --active)
+
+menu="── Network ─────────────────────────────\n"
+for entry in "${PROFILES[@]}"; do
+    IFS='|' read -r name icon desc <<<"$entry"
+    if grep -qxF "$name" <<<"$active"; then dot="●"; else dot=" "; fi
+    menu+="$dot $icon  $name   ·  $desc\n"
+done
+menu+="  $ICON_SIGNAL  Pin strongest WiFi node   ·  scan mesh, re-pin\n"
+menu+="  $ICON_GEAR  Network settings…\n"
+
+menu+="── Waybar ──────────────────────────────\n"
+if [ -f "$NET_STATE" ]; then
+    menu+="  $ICON_GAUGE  Network speeds: ON  — hide\n"
+else
+    menu+="  $ICON_GAUGE  Network speeds: OFF — show\n"
+fi
+menu+="  $ICON_RELOAD  Restart waybar   ·  fixes missing/off-screen bar\n"
+
+menu+="── Power ───────────────────────────────\n"
+if awake_pid >/dev/null; then
+    menu+="  $ICON_POWER  Auto sleep: OFF (stay awake) — re-enable\n"
+else
+    menu+="  $ICON_POWER  Auto sleep: ON (15 min) — turn off\n"
+fi
+
+menu+="── Snapshots (btrfs / snapper) ─────────\n"
+menu+="  $ICON_CAM  Save snapshot now   ·  / and /home…\n"
+menu+="  $ICON_LIST  List snapshots   ·  / and /home"
+
+chosen=$(printf "%b" "$menu" | wofi_menu "  System" 490)
+[ -z "$chosen" ] && exit 0
+[[ "$chosen" == "──"* ]] && exit 0
+
+# ── Network profiles ──────────────────────────────────────────────────────────
+for entry in "${PROFILES[@]}"; do
+    IFS='|' read -r name _ _ <<<"$entry"
+    if [[ "$chosen" == *"  $name   ·"* ]]; then
+        notify-send -a network "Network" "Connecting to $name…"
+        if out=$(nmcli connection up "$name" 2>&1); then
+            notify-send -a network "Network" "Switched to $name"
+        else
+            notify-send -u critical -a network "Network: $name failed" "$out"
+        fi
+        exit 0
+    fi
+done
+
+if [[ "$chosen" == *"Pin strongest WiFi node"* ]]; then
+    notify-send -a network "WiFi" "Scanning mesh nodes…"
+    exec "$HOME/.local/bin/wifi-pin-strongest"
+fi
+
+if [[ "$chosen" == *"Network settings"* ]]; then
+    exec nm-connection-editor
+fi
+
+# ── Waybar network-speed toggle ───────────────────────────────────────────────
+if [[ "$chosen" == *"Network speeds:"* ]]; then
+    if [ -f "$NET_STATE" ]; then rm "$NET_STATE"; else touch "$NET_STATE"; fi
+    # Rewrite modules-right; paths/values go in via argv, not string interpolation
+    python3 - "$CONFIG" "$NET_STATE" <<'PY'
+import os, re, sys
+path, state = sys.argv[1], sys.argv[2]
+base = ["custom/weather", "cpu", "memory", "pulseaudio", "tray"]
+mods = base + (["custom/sep", "custom/net-wifi", "custom/net-eth"] if os.path.exists(state) else [])
+new = '"modules-right": [' + ", ".join(f'"{m}"' for m in mods) + ']'
+src = open(path).read()
+open(path, "w").write(re.sub(r'"modules-right":\s*\[[^\]]*\]', new, src, count=1))
+PY
+    exec "$HOME/.local/bin/waybar-restart"
+fi
+
+if [[ "$chosen" == *"Restart waybar"* ]]; then
+    "$HOME/.local/bin/waybar-restart"
+    notify-send -a waybar "Waybar" "Restarted"
+    exit 0
+fi
+
+# ── Auto-sleep toggle ─────────────────────────────────────────────────────────
+if [[ "$chosen" == *"Auto sleep:"* ]]; then
+    if pid=$(awake_pid); then
+        kill "$pid"; rm -f "$AWAKE_PID"
+        notify-send -a power "Auto sleep ON" "Locks at 14 min, suspends at 15 min idle again"
+    else
+        # setsid: own session, so it outlives this menu script
+        setsid systemd-inhibit --what=sleep --mode=block --who="Stay awake" \
+            --why="Auto sleep turned off from SUPER+S" sleep infinity >/dev/null 2>&1 &
+        echo $! > "$AWAKE_PID"
+        notify-send -a power "Auto sleep OFF" "No idle lock or suspend until re-enabled or reboot"
+    fi
+    exit 0
+fi
+
+# ── Snapshots ─────────────────────────────────────────────────────────────────
+# Both snapper configs: root (/) and home (/home), one description for both.
+# A config accepts your user only if its ALLOW_USERS includes you (home does,
+# root does not). Each config is tried unprivileged first (instant, no prompt);
+# the ones refused are redone in a floating kitty with sudo, since there's no
+# polkit agent in this session to prompt via GUI. sudo caches the password, so
+# that is at most one prompt. Automatic timeline snapshots are off for both
+# (TIMELINE_CREATE=no, 2026-11-15); these manual ones use the "number" cleanup,
+# so snapper-cleanup.timer prunes them past each config's NUMBER_LIMIT.
+SNAP_CONFIGS=(root home)
+
+if [[ "$chosen" == *"Save snapshot"* ]]; then
+    desc=$(printf "" | wofi_menu "  Snapshot description (Enter)" 60)
+    [ -z "$desc" ] && exit 0
+    saved=(); need_sudo=()
+    for cfg in "${SNAP_CONFIGS[@]}"; do
+        if num=$(snapper -c "$cfg" create --print-number --cleanup-algorithm number -d "$desc" 2>/dev/null); then
+            saved+=("$cfg #$num")
+        else
+            need_sudo+=("$cfg")
+        fi
+    done
+    printf -v saved_str '%s, ' "${saved[@]}"; saved_str=${saved_str%, }
+    if [ ${#need_sudo[@]} -eq 0 ]; then
+        notify-send -a snapper "Snapshots saved: $saved_str" "$desc"
+        exit 0
+    fi
+    exec kitty --class waybar-chart --title "Snapshot" -e bash -c '
+        desc=$1; done_str=$2; shift 2
+        [ -n "$done_str" ] && echo "Already saved: $done_str"
+        failed=""
+        for cfg in "$@"; do
+            echo "Creating $cfg snapshot: $desc"
+            if n=$(sudo snapper -c "$cfg" create --print-number --cleanup-algorithm number -d "$desc"); then
+                done_str+="${done_str:+, }$cfg #$n"; echo "Saved $cfg as #$n"
+            else
+                failed+="${failed:+, }$cfg"; echo "FAILED: $cfg"
+            fi
+        done
+        if [ -n "$failed" ]; then
+            notify-send -u critical -a snapper "Snapshot FAILED: $failed" "Saved: ${done_str:-none}"
+        else
+            notify-send -a snapper "Snapshots saved: $done_str" "$desc"
+        fi
+        echo; read -n1 -rsp "Press any key to close"' _ "$desc" "$saved_str" "${need_sudo[@]}"
+fi
+
+if [[ "$chosen" == *"List snapshots"* ]]; then
+    exec kitty --class waybar-chart --title "Snapshots" -e bash -c '
+        for cfg in "$@"; do
+            [ "$cfg" = root ] && mnt=/ || mnt=/$cfg
+            echo "── $cfg ($mnt) ──"
+            snapper -c "$cfg" list 2>/dev/null || sudo snapper -c "$cfg" list
+            echo
+        done
+        read -n1 -rsp "Press any key to close"' _ "${SNAP_CONFIGS[@]}"
+fi

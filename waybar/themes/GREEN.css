@@ -1,4 +1,5 @@
 /* Waybar terminal-green theme — phosphor CRT edition */
+@import url("outline.css");   /* shared module outline shape (colour-agnostic) */
 
 * {
     font-family: "Noto Sans Mono", monospace;

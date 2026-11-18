@@ -1,4 +1,5 @@
 /* Waybar BEIGE theme — dark warm brown → pale golden sand */
+@import url("outline.css");   /* shared module outline shape (colour-agnostic) */
 
 * {
     font-family: "Noto Sans Mono", monospace;

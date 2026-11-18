@@ -20,14 +20,15 @@ if [ -z "$theme" ]; then
 fi
 
 case "$theme" in
-    GREEN)           border='rgba(a8d870ee) rgba(6ab868ee) 45deg'  ; accent="168, 216, 112" ;;  # soft lime → sage
-    TRD)             border='rgba(1e40afee) rgba(3b82f6ee) 45deg'  ; accent="59, 130, 246"  ;;  # deep navy → mid blue
-    COPPER)          border='rgba(e0b07aee) rgba(b07030ee) 45deg'  ; accent="224, 176, 122" ;;  # light brass → medium copper
-    DARKRED)         border='rgba(b84040ee) rgba(601010ee) 45deg'  ; accent="184, 64, 64"   ;;  # crimson → dark blood
-    GREY)            border='rgba(dcdce8ee) rgba(a8a8b8ee) 45deg'  ; accent="122, 122, 132" ;;  # off-white → light grey
-    BEIGE)           border='rgba(a49268ee) rgba(4a3820ee) 45deg'  ; accent="164, 146, 104" ;;  # pale sand → dark brown
-    "BROWN & GREEN") border='rgba(508838ee) rgba(1a2e14ee) 45deg'  ; accent="80, 136, 56"   ;;  # olive → deep forest
-    *)               border='rgba(33ccffee) rgba(00ff99ee) 45deg'  ; accent="51, 204, 255"  ;;  # BLUE default
+    # Solid borders: each colour is the per-channel average of the old two-stop gradient (noted in the comment).
+    GREEN)           border='rgba(89c86cee)'  ; accent="168, 216, 112" ;;  # avg of a8d870 (soft lime) + 6ab868 (sage)
+    TRD)             border='rgba(2d61d3ee)'  ; accent="59, 130, 246"  ;;  # avg of 1e40af (deep navy) + 3b82f6 (mid blue)
+    COPPER)          border='rgba(c89055ee)'  ; accent="224, 176, 122" ;;  # avg of e0b07a (light brass) + b07030 (copper)
+    DARKRED)         border='rgba(8c2828ee)'  ; accent="184, 64, 64"   ;;  # avg of b84040 (crimson) + 601010 (dark blood)
+    GREY)            border='rgba(c2c2d0ee)'  ; accent="122, 122, 132" ;;  # avg of dcdce8 (off-white) + a8a8b8 (light grey)
+    BEIGE)           border='rgba(776544ee)'  ; accent="164, 146, 104" ;;  # avg of a49268 (pale sand) + 4a3820 (dark brown)
+    "BROWN & GREEN") border='rgba(355b26ee)'  ; accent="80, 136, 56"   ;;  # avg of 508838 (olive) + 1a2e14 (deep forest)
+    *)               border='rgba(1ae6ccee)'  ; accent="51, 204, 255"  ;;  # BLUE default: avg of 33ccff + 00ff99
 esac
 
 hyprctl keyword general:col.active_border "$border"

@@ -42,4 +42,32 @@ if is_night:
         text = text.replace(old, new)
     data['text'] = text
 
+# --style MINIMUM: replace the colour emoji with a single-colour Nerd Font glyph (so CSS
+# can tint it with the SUPER+O accent) and make the temperature white. Chosen from
+# wttrbar's "class" (stable keyword) rather than parsing the emoji, first match wins.
+style_arg = sys.argv[sys.argv.index('--style') + 1:][:1] if '--style' in sys.argv else []
+if [s.upper() for s in style_arg] == ['MINIMUM']:
+    cls = data.get('class', '')
+    cls = (cls if isinstance(cls, str) else ' '.join(cls)).lower()
+    rules = [
+        (('thunder', 'storm'),                 '\U000f067e', '\U000f067e'),  # lightning-rainy
+        (('snow', 'sleet', 'ice', 'blizzard'), '\U000f0598', '\U000f0598'),  # snowy
+        (('heavy',),                           '\U000f0596', '\U000f0596'),  # pouring
+        (('rain', 'shower', 'drizzle'),        '\U000f0597', '\U000f0597'),  # rainy
+        (('fog', 'mist', 'haze'),              '\U000f0591', '\U000f0591'),  # fog
+        (('partly',),                          '\U000f0595', '\U000f0f31'),  # partly cloudy / night variant
+        (('cloud', 'overcast'),                '\U000f0590', '\U000f0590'),  # cloudy
+        (('sun', 'clear'),                     '\U000f0599', '\U000f0594'),  # sunny / night
+    ]
+    glyph = '\U000f0590'
+    for keys, day, night in rules:
+        if any(k in cls for k in keys):
+            glyph = night if is_night else day
+            break
+    m = re.search(r'>([^<]*)</span>', data.get('text', ''))
+    temp = m.group(1) if m else ''
+    # Mono variant: every weather glyph is one cell wide, so condition changes don't resize
+    data['text'] = (f"<span font_family='Symbols Nerd Font Mono'>{glyph}</span> "
+                    f"<span foreground='#ffffff'>{temp}</span>")
+
 print(json.dumps(data))

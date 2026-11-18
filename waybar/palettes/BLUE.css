@@ -1,0 +1,3 @@
+/* Palette for the BLUE colour (SUPER+O). Read by every non-Personal waybar style.
+ * @accent tints icons, hover tint and the active workspace pill. Values/text stay white. */
+@define-color accent #3a9ad8;

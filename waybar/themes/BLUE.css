@@ -1,4 +1,5 @@
 /* Waybar BLUE theme — midnight navy → cerulean sky */
+@import url("outline.css");   /* shared module outline shape (colour-agnostic) */
 
 * {
     font-family: "Noto Sans Mono", monospace;

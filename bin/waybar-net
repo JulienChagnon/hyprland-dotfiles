@@ -1,13 +1,41 @@
 #!/usr/bin/env bash
-# waybar-net <iface> <label>
-# Output: "WIFI 1.2M"  — download only, auto-scales B/s -> K/s -> M/s -> G/s
+# waybar-net <iface> <WIFI|ETH> [STYLE]
+# Output: "<icon> 1.2M", download rate only, auto-scales B -> K -> M -> G per second.
+#
+# Every style uses the same Font Awesome wifi/ethernet icons (the PERSONAL ones).
+# STYLE (3rd arg, default PERSONAL, case-insensitive) only changes:
+#   PERSONAL: rate in warm grey, a down link is shown dimmed as "---"
+#   MINIMUM:  rate in white, a down link prints NOTHING, so waybar hides the module
+#             (only the connections that are actually up are shown)
+#
+# Width is locked by the module's "min-length" + "align": 0 in config.jsonc, not by
+# padding here. fmt() keeps the rate to at most 6 chars so it always fits.
 iface="${1:-wlan0}"
 label="${2:-NET}"
+style="${3:-PERSONAL}"
+style="${style^^}"
 state="/tmp/waybar-net-${iface}.state"
+
+# Font Awesome glyphs, forced with a span because the bar font (Noto Sans Mono)
+# has no such characters.
+case "$label" in
+    WIFI) glyph=$'' ;;   # fa-wifi
+    ETH)  glyph=$'' ;;   # fa-ethernet
+    *)    glyph="" ;;
+esac
+[[ -n "$glyph" ]] && label="<span font_family='Font Awesome 6 Free' font_weight='900'>$glyph</span>"
+
+value_colour="#B4AEA4"
+[[ "$style" == "MINIMUM" ]] && value_colour="#ffffff"
 
 if [[ ! -d "/sys/class/net/$iface" ]] \
    || [[ "$(< /sys/class/net/$iface/operstate)" != "up" ]]; then
-    printf "%s <span foreground='#B4AEA4'>---</span>\n" "$label"
+    rm -f "$state"   # stale counter would give a bogus first rate on reconnect
+    if [[ "$style" == "MINIMUM" ]]; then
+        echo ""      # empty text = waybar hides the module
+    else
+        printf "<span alpha='45%%'>%s ---</span>\n" "$label"
+    fi
     exit
 fi
 
@@ -18,19 +46,22 @@ rxBps=0
 if [[ -f "$state" ]]; then
     read -r p_rx p_t < "$state"
     dt=$(( now - p_t ))
-    if (( dt > 200 )); then
-        rxBps=$(awk "BEGIN{printf \"%d\", ($rx - $p_rx) * 1000 / $dt}")
+    if (( dt > 200 && rx >= p_rx )); then   # rx < p_rx = counter reset, report 0
+        rxBps=$(( (rx - p_rx) * 1000 / dt ))
     fi
 fi
 echo "$rx $now" > "$state"
 
+# Move up a unit (/1024) while the number would print as 1000 or more (>= 999.95
+# rounds to "1000.0"), so it never needs more than 3 integer digits: worst case
+# "999.9K", 6 chars, which fits inside the module's min-length.
 fmt() {
-    local b=$1
-    if   (( b >= 1073741824 )); then awk "BEGIN{printf \"%.1fG\", $b/1073741824}"
-    elif (( b >=    1048576 )); then awk "BEGIN{printf \"%.1fM\", $b/1048576}"
-    elif (( b >=       1024 )); then awk "BEGIN{printf \"%.1fK\", $b/1024}"
-    else                              printf "%dB" "$b"
-    fi
+    awk -v b="$1" 'BEGIN {
+        split("B K M G", unit, " "); i = 1; v = b
+        while (v >= 999.95 && i < 4) { v /= 1024; i++ }
+        s = (i == 1) ? sprintf("%dB", v) : sprintf("%.1f%s", v, unit[i])
+        printf "%s", s
+    }'
 }
 
-printf "%s <span foreground='#B4AEA4'>%s</span>\n" "$label" "$(fmt "$rxBps")"
+printf "%s <span foreground='%s'>%s</span>\n" "$label" "$value_colour" "$(fmt "$rxBps")"
