@@ -1,0 +1,30 @@
+/* pills.css: "tinted pills" module style. Copy over ../outline.css to activate.
+ * Colour-agnostic: everything uses currentColor (each module's own text colour, set
+ * by the theme), so one file serves all 8 themes without touching their palettes.
+ *
+ * Shape: no outline at all. Each module is a fully rounded capsule filled with a faint
+ * wash of its own colour. Hover deepens the wash.
+ *
+ * Selectors are prefixed with window#waybar so they outrank the theme's plain #cpu
+ * rules (2 ids vs 1). That also outranks the theme's #cpu:hover background, which is
+ * why this file defines its own :hover.
+ */
+
+window#waybar #custom-weather,
+window#waybar #cpu,
+window#waybar #memory,
+window#waybar #pulseaudio {
+    border: none;                               /* drop the theme's top/bottom rails */
+    border-radius: 999px;                       /* GTK clamps this to a full pill */
+    background-color: alpha(currentColor, 0.13);
+    box-shadow: none;
+    padding: 2px 12px;
+    transition: background-color 0.22s ease-in-out;
+}
+
+window#waybar #custom-weather:hover,
+window#waybar #cpu:hover,
+window#waybar #memory:hover,
+window#waybar #pulseaudio:hover {
+    background-color: alpha(currentColor, 0.24);
+}

@@ -1,0 +1,38 @@
+/* outline.css: shared module outline shape, imported by every theme.
+ * Colour-agnostic: everything uses currentColor (each module's own text colour, which
+ * the theme sets), so one file serves all 8 themes without touching their palettes.
+ *
+ * Shape: "leaf" ticket. Solid accent spine on the left, faint hairline on the other
+ * three sides, opposite corners rounded (10px) and the other two nearly square (3px),
+ * plus a soft glow bleeding inward from the spine. On hover the corners flip.
+ *
+ * Selectors are prefixed with window#waybar so they outrank the theme's plain #cpu
+ * etc. rules (specificity 2 ids vs 1) even though this file is imported first.
+ * background is deliberately NOT set, so each theme's hover tint still applies.
+ */
+
+window#waybar #custom-weather,
+window#waybar #cpu,
+window#waybar #memory,
+window#waybar #pulseaudio {
+    border-style: solid;
+    border-width: 1px 1px 1px 3px;
+    border-color: alpha(currentColor, 0.28);
+    border-left-color: currentColor;
+    border-radius: 10px 3px 10px 3px;
+    box-shadow: inset 7px 0 9px -7px alpha(currentColor, 0.55);
+    transition: border-radius 0.25s ease-in-out,
+                border-color 0.25s ease-in-out,
+                box-shadow 0.25s ease-in-out,
+                background 0.22s ease-in-out;
+}
+
+window#waybar #custom-weather:hover,
+window#waybar #cpu:hover,
+window#waybar #memory:hover,
+window#waybar #pulseaudio:hover {
+    border-radius: 3px 10px 3px 10px;
+    border-color: alpha(currentColor, 0.55);
+    border-left-color: currentColor;
+    box-shadow: inset 12px 0 12px -10px alpha(currentColor, 0.70);
+}

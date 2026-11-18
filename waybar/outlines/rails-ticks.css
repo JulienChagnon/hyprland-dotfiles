@@ -1,0 +1,42 @@
+/* rails-ticks.css: the theme's original top/bottom rails (left untouched) plus thin
+ * vertical side ticks. Copy over ../outline.css to activate.
+ *
+ * Rails are already 1px (the thinnest a border can be), so the sides read "thinner" by
+ * being shorter and fainter: 1px ticks at 40% height and 45% opacity. On hover they
+ * grow to full height and full colour, closing the rails into a complete box.
+ *
+ * Why gradients, not borders: a CSS border always spans the full edge. A 1px-wide
+ * solid-colour background image can be any height and positioned anywhere, and GTK
+ * can animate its size. Two images = left tick + right tick.
+ *
+ * Only background-image/size/position/repeat are set here, never background-color,
+ * so each theme's own hover tint still shows. window#waybar prefix outranks the
+ * theme's "#cpu:hover { background: ... }" shorthand, which would otherwise reset
+ * background-image to none on hover.
+ */
+
+window#waybar #custom-weather,
+window#waybar #cpu,
+window#waybar #memory,
+window#waybar #pulseaudio {
+    background-image:
+        linear-gradient(alpha(currentColor, 0.45), alpha(currentColor, 0.45)),
+        linear-gradient(alpha(currentColor, 0.45), alpha(currentColor, 0.45));
+    background-size: 1px 40%, 1px 40%;
+    background-position: left center, right center;
+    background-repeat: no-repeat;
+    transition: background-size 0.28s ease-in-out,
+                background-image 0.28s ease-in-out,
+                background-color 0.22s ease-in-out,
+                border-color 0.22s ease-in-out;
+}
+
+window#waybar #custom-weather:hover,
+window#waybar #cpu:hover,
+window#waybar #memory:hover,
+window#waybar #pulseaudio:hover {
+    background-image:
+        linear-gradient(currentColor, currentColor),
+        linear-gradient(currentColor, currentColor);
+    background-size: 1px 100%, 1px 100%;
+}

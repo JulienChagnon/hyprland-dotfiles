@@ -1,0 +1,4 @@
+/* rails.css: the original look. Intentionally empty: with no overrides, each theme's own
+ * #cpu/#memory/#pulseaudio/#custom-weather rules (1px top + bottom rails) apply again.
+ * Copy over ../outline.css to activate.
+ */

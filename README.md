@@ -160,6 +160,11 @@ Bundled in `wallpapers/` and installed to `~/Pictures/wallpapers/`:
 | `Think.png` | Default (Hyprpaper + Hyprlock) |
 | `enchanted-forest.jpg` | Alternate |
 | `shark.png` | Alternate |
+| `Colour-globe.jpg` | Alternate |
+| `cyan-medical.jpg` | Alternate |
+| `dark-forest.jpg` | Alternate |
+| `green+pink.jpg` | Alternate |
+| `kiteboard.jpg` | Alternate |
 
 Switch live with `SUPER + W`, or drop your own into `~/Pictures/wallpapers/`.
 

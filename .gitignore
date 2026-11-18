@@ -11,5 +11,8 @@ waybar/.active_style
 waybar/.clock_hidden
 waybar/style.css.tmp
 
+# Private wallpaper: never push, even with `git add -A`
+wallhaven.png
+
 # OS noise
 .DS_Store
